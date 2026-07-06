@@ -111,38 +111,36 @@ def import_excel():
 
     return jsonify({'imported': imported, 'errors': errors})
 
-
-
+# ── GET /api/products/bestsellers ─────────────────────────────────────────────
 @products_bp.route('/bestsellers', methods=['GET'])
 def bestsellers():
     from app.db import get_db
     limit = min(24, max(1, int(request.args.get('limit', 8))))
     db = get_db()
-    # Featured d'abord, puis par ventes décroissantes, puis récents
     cursor = db['products'].find({}).sort([
-        ('isFeatured', -1),   # featured en tête
-        ('salesCount', -1),   # puis meilleures ventes
-        ('createdAt', -1),    # fallback : récents (si tout à 0)
+        ('isFeatured', -1),
+        ('salesCount', -1),
+        ('createdAt', -1),
     ]).limit(limit)
     products = [ProductModel.serialize(p) for p in cursor]
     return jsonify({'products': products})
- 
- 
+
+
+# ── GET /api/products/top-rated ───────────────────────────────────────────────
 @products_bp.route('/top-rated', methods=['GET'])
 def top_rated():
     from app.db import get_db
     limit = min(24, max(1, int(request.args.get('limit', 8))))
     db = get_db()
     cursor = db['products'].find({}).sort([
-        ('isFeatured', -1),   # featured en tête
-        ('rating', -1),       # puis meilleure note
-        ('salesCount', -1),   # départage par ventes
-        ('createdAt', -1),    # fallback : récents
+        ('isFeatured', -1),
+        ('rating', -1),
+        ('salesCount', -1),
+        ('createdAt', -1),
     ]).limit(limit)
     products = [ProductModel.serialize(p) for p in cursor]
     return jsonify({'products': products})
- 
- 
+
 # ── GET /api/products/:id ─────────────────────────────────────────────────────
 @products_bp.route('/<product_id>', methods=['GET'])
 def get_product(product_id):
@@ -185,65 +183,38 @@ def create_product():
     return jsonify(p), 201
 
 
-# ── DELETE /api/products/:id ── (REMPLACE l'existante)
-@products_bp.route('/<product_id>', methods=['DELETE'])
-@jwt_required()
-def delete_product(product_id):
-    if not _is_admin():
-        return jsonify({'error': 'Admin only'}), 403
-    # Récupère le produit AVANT suppression pour connaître ses images
-    product = ProductModel.get_by_id(product_id)
-    ProductModel.delete_product(product_id)
-    # Supprime les images du bucket R2
-    if product:
-        from app.services.r2_storage import delete_from_r2
-        for img_url in (product.get('images') or []):
-            try:
-                delete_from_r2(img_url)
-            except Exception as e:
-                print(f"[R2] delete image failed: {e}")
-    return jsonify({'deleted': True})
- 
- 
-# ── PUT /api/products/:id ── (REMPLACE l'existante)
-#  Supprime du bucket les images RETIRÉES lors de l'update.
+# ── PUT /api/products/:id ─────────────────────────────────────────────────────
 @products_bp.route('/<product_id>', methods=['PUT'])
 @jwt_required()
 def update_product(product_id):
     if not _is_admin():
         return jsonify({'error': 'Admin only'}), 403
- 
+
     import json
-    from app.services.r2_storage import delete_from_r2
     data = request.form.to_dict() if request.form else (request.get_json() or {})
- 
-    # Images existantes AVANT update (pour détecter celles retirées)
-    old_product = ProductModel.get_by_id(product_id)
-    old_images  = set((old_product or {}).get('images', []))
- 
-    # Images conservées (envoyées par le front)
+
+    print(f"[UPDATE] product_id={product_id}")
+    print(f"[UPDATE] raw data keys: {list(data.keys())}")
+    print(f"[UPDATE] colors={data.get('colors')!r}")
+    print(f"[UPDATE] sizes={data.get('sizes')!r}")
+    print(f"[UPDATE] specs={data.get('specs')!r}")
+    print(f"[UPDATE] note={data.get('note')!r}")
+
+    # Keep existing images that weren't removed
     existing = json.loads(data.pop('existingImages', '[]'))
     new_imgs = list(existing)
- 
-    # Upload nouvelles photos
+
+    # Upload new photos
     for f in request.files.getlist('photos'):
         if f and _allowed_img(f.filename):
             new_imgs.append(_save_image(f))
- 
+
     data['images'] = new_imgs
     p = ProductModel.update_product(product_id, data)
     _sync_meta(p)
- 
-    # ── Nettoyage : supprimer du bucket les images qui ne sont plus utilisées ──
-    kept = set(new_imgs)
-    removed = old_images - kept
-    for img_url in removed:
-        try:
-            delete_from_r2(img_url)
-        except Exception as e:
-            print(f"[R2] delete removed image failed: {e}")
- 
+    print(f"[UPDATE] saved colors={p.get('colors')}, sizes={p.get('sizes')}")
     return jsonify(p)
+
 
 # ── POST /api/products/:id/photos ─────────────────────────────────────────────
 @products_bp.route('/<product_id>/photos', methods=['POST'])
@@ -263,6 +234,16 @@ def upload_photos(product_id):
     ProductModel.add_images(product_id, urls)
     p = ProductModel.get_by_id(product_id)
     return jsonify({'images': p['images']})
+
+
+# ── DELETE /api/products/:id ──────────────────────────────────────────────────
+@products_bp.route('/<product_id>', methods=['DELETE'])
+@jwt_required()
+def delete_product(product_id):
+    if not _is_admin():
+        return jsonify({'error': 'Admin only'}), 403
+    ProductModel.delete_product(product_id)
+    return jsonify({'deleted': True})
 
 
 # ── GET /api/products/meta/brands ─────────────────────────────────────────────
@@ -288,6 +269,7 @@ def meta_colors():
     if not colors:
         colors = ['שחור','לבן','כסף','זהב','כחול','אדום','ירוק','אפור','ורוד','סגול']
     return jsonify({'colors': colors})
+
 
 
 # ── POST /api/products/import-json ────────────────────────────────────────────
@@ -387,6 +369,7 @@ def admin_list():
     col = get_db()['products']
     products = [ProductModel.serialize(p, admin=True) for p in col.find().sort('createdAt', -1)]
     return jsonify({'products': products, 'total': len(products)})
+ 
 
 
 @products_bp.route('/export', methods=['GET'])
@@ -445,3 +428,4 @@ def export_products():
             download_name=f'tataphone_products_{stamp}.json'
         )
  
+
