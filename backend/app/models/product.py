@@ -30,6 +30,7 @@ def create_indexes():
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def build_query(params: dict) -> dict:
     query = {}
     if params.get('cat'):
@@ -37,13 +38,24 @@ def build_query(params: dict) -> dict:
     if params.get('brand'):
         query['brand'] = {'$regex': params['brand'], '$options': 'i'}
     if params.get('q'):
-        query['$text'] = {'$search': params['q']}
+        import re
+        term = re.escape(params['q'].strip())
+        if term:
+            query['$or'] = [
+                {'name':        {'$regex': term, '$options': 'i'}},
+                {'brand':       {'$regex': term, '$options': 'i'}},
+                {'description': {'$regex': term, '$options': 'i'}},
+                {'sku':         {'$regex': term, '$options': 'i'}},
+                {'nameEn':      {'$regex': term, '$options': 'i'}},
+            ]
     if params.get('sale') == 'true':
         query['discount'] = True
     if params.get('isKosher') == 'true':
         query['isKosher'] = True
     if params.get('isAccessory') == 'true':
         query['isAccessory'] = True
+    if params.get('inStock') == 'true':
+        query['stock'] = {'$gt': 0}
     if params.get('min_price') or params.get('max_price'):
         price_q = {}
         if params.get('min_price'):
@@ -52,7 +64,6 @@ def build_query(params: dict) -> dict:
             price_q['$lte'] = float(params['max_price'])
         query['price'] = price_q
     return query
-
 
 def get_all(params: dict = {}):
     col    = get_collection()

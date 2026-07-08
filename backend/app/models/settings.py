@@ -9,7 +9,7 @@ _SETTINGS_ID = 'shop'
 # Valeurs par défaut si aucun réglage n'existe encore
 DEFAULTS = {
     '_id': _SETTINGS_ID,
-    'vatRate': 18,                    # taux TVA (%) — prix produits sont TTC, c'est indicatif
+    'vatRate': 0,                    # taux TVA (%) — prix produits sont TTC, c'est indicatif
     'shippingType': 'fixed',          # 'fixed' ou 'percent'
     'shippingValue': 30,              # 30₪ fixe, ou X% si percent
     'freeShippingEnabled': True,      # livraison gratuite au-dessus d'un seuil ?

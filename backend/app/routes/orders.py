@@ -454,31 +454,22 @@ def grow_create():
 
 
 # ── POST /api/orders/grow/webhook ────────────────────────────────────────────
+ 
 @orders_bp.route('/grow/webhook', methods=['POST'])
 def grow_webhook():
-    """Notification serveur-à-serveur de Grow : marque payé + facture."""
-    import os, requests as req
+    """Notification serveur-à-serveur de Grow : marque la commande payée.
+    Grow envoie lui-même le reçu (קבלה) au client → pas d'email de notre côté."""
     data = request.form.to_dict() or (request.get_json(silent=True) or {})
     print(f"[GROW/WEBHOOK] reçu: {data}")
  
-    # ── Grow envoie les clés en format APLATI : data[customFields][cField1] ──
-    # On cherche l'orderId à tous les endroits possibles (robuste).
     order_id = (
         data.get('data[customFields][cField1]')
         or data.get('cField1')
         or data.get('orderId')
         or ''
     )
- 
-    # Le statut : Grow envoie status='1' ET data[status]='שולם' ET data[statusCode]='2'
     status      = str(data.get('status', '')) or str(data.get('data[status]', ''))
     status_code = str(data.get('data[statusCode]', ''))
- 
-    # transactionId / token aussi en format aplati
-    trans_id    = data.get('data[transactionId]')    or data.get('transactionId', '')
-    trans_token = data.get('data[transactionToken]') or data.get('transactionToken', '')
- 
-    # Payé si status='1' (ou '2'), ou statusCode='2', ou texte 'שולם', etc.
     paid = (
         status in ('1', '2', 'approved', 'success', 'שולם')
         or status_code in ('1', '2')
@@ -493,44 +484,91 @@ def grow_webhook():
             OrderModel.update_status(order_id, 'approved')
             get_db()['orders'].update_one(
                 {'_id': ObjectId(order_id)},
-                {'$set': {'paymentStatus': 'paid', 'paymentMethod': 'grow'}}
+                {'$set': {'paymentStatus': 'paid', 'paymentMethod': 'grow', 'invoiceSent': True}}
             )
-
-            _increment_sales(order_id)
-
-            print(f"[GROW] commande {order_id} marquée payée ✓")
+            print(f"[GROW] commande {order_id} marquée payée ✓ (reçu envoyé par Grow)")
         except Exception as e:
             print(f'[GROW] order update failed: {e}')
  
-        # ── Envoyer la facture/confirmation MAINTENANT (paiement confirmé) ──
-        try:
-            order = OrderModel.get_by_id(order_id)
-            c = (order or {}).get('customer', {})
-            if order and c.get('email') and not order.get('invoiceSent'):
-                send_order_confirmation(c['email'], c.get('firstName', ''), order)
-                OrderModel.mark_invoice_sent(order_id)
-                print(f"[GROW] facture envoyée à {c.get('email')} ✓")
-            elif order and order.get('invoiceSent'):
-                print(f"[GROW] facture déjà envoyée pour {order_id} — skip")
-            else:
-                print(f"[GROW] pas d'email client pour {order_id} — pas de facture")
-        except Exception as e:
-            print(f'[GROW] invoice send failed: {e}')
+    # Toujours 200 (Grow l'exige)
+    return jsonify({'ok': True}), 200
+# @orders_bp.route('/grow/webhook', methods=['POST'])
+# def grow_webhook():
+#     """Notification serveur-à-serveur de Grow : marque payé + facture."""
+#     import os, requests as req
+#     data = request.form.to_dict() or (request.get_json(silent=True) or {})
+#     print(f"[GROW/WEBHOOK] reçu: {data}")
  
-        # ── approveTransaction (acquitter, sinon Grow renvoie 5 rappels) ──
-        try:
-            user_id = os.getenv('GROW_USER_ID', '')
-            if user_id and trans_id:
-                sandbox = os.getenv('GROW_SANDBOX', 'true') == 'true'
-                base    = 'https://sandbox.grow.link' if sandbox else 'https://secure.grow.link'
-                req.post(f'{base}/api/light/server/1.0/approveTransaction',
-                         data={'userId': user_id, 'transactionId': trans_id,
-                               'transactionToken': trans_token}, timeout=20)
-                print(f"[GROW] approveTransaction envoyé pour {trans_id}")
-        except Exception as e:
-            print(f'[GROW] approveTransaction failed: {e}')
+#     # ── Grow envoie les clés en format APLATI : data[customFields][cField1] ──
+#     # On cherche l'orderId à tous les endroits possibles (robuste).
+#     order_id = (
+#         data.get('data[customFields][cField1]')
+#         or data.get('cField1')
+#         or data.get('orderId')
+#         or ''
+#     )
  
-    return jsonify({'ok': True})
+#     # Le statut : Grow envoie status='1' ET data[status]='שולם' ET data[statusCode]='2'
+#     status      = str(data.get('status', '')) or str(data.get('data[status]', ''))
+#     status_code = str(data.get('data[statusCode]', ''))
+ 
+#     # transactionId / token aussi en format aplati
+#     trans_id    = data.get('data[transactionId]')    or data.get('transactionId', '')
+#     trans_token = data.get('data[transactionToken]') or data.get('transactionToken', '')
+ 
+#     # Payé si status='1' (ou '2'), ou statusCode='2', ou texte 'שולם', etc.
+#     paid = (
+#         status in ('1', '2', 'approved', 'success', 'שולם')
+#         or status_code in ('1', '2')
+#     )
+ 
+#     print(f"[GROW/WEBHOOK] order_id={order_id} paid={paid} status={status} statusCode={status_code}")
+ 
+#     if paid and order_id:
+#         try:
+#             from app.db import get_db
+#             from bson import ObjectId
+#             OrderModel.update_status(order_id, 'approved')
+#             get_db()['orders'].update_one(
+#                 {'_id': ObjectId(order_id)},
+#                 {'$set': {'paymentStatus': 'paid', 'paymentMethod': 'grow'}}
+#             )
+
+#             _increment_sales(order_id)
+
+#             print(f"[GROW] commande {order_id} marquée payée ✓")
+#         except Exception as e:
+#             print(f'[GROW] order update failed: {e}')
+ 
+#         # ── Envoyer la facture/confirmation MAINTENANT (paiement confirmé) ──
+#         try:
+#             order = OrderModel.get_by_id(order_id)
+#             c = (order or {}).get('customer', {})
+#             if order and c.get('email') and not order.get('invoiceSent'):
+#                 send_order_confirmation(c['email'], c.get('firstName', ''), order)
+#                 OrderModel.mark_invoice_sent(order_id)
+#                 print(f"[GROW] facture envoyée à {c.get('email')} ✓")
+#             elif order and order.get('invoiceSent'):
+#                 print(f"[GROW] facture déjà envoyée pour {order_id} — skip")
+#             else:
+#                 print(f"[GROW] pas d'email client pour {order_id} — pas de facture")
+#         except Exception as e:
+#             print(f'[GROW] invoice send failed: {e}')
+ 
+#         # ── approveTransaction (acquitter, sinon Grow renvoie 5 rappels) ──
+#         try:
+#             user_id = os.getenv('GROW_USER_ID', '')
+#             if user_id and trans_id:
+#                 sandbox = os.getenv('GROW_SANDBOX', 'true') == 'true'
+#                 base    = 'https://sandbox.grow.link' if sandbox else 'https://secure.grow.link'
+#                 req.post(f'{base}/api/light/server/1.0/approveTransaction',
+#                          data={'userId': user_id, 'transactionId': trans_id,
+#                                'transactionToken': trans_token}, timeout=20)
+#                 print(f"[GROW] approveTransaction envoyé pour {trans_id}")
+#         except Exception as e:
+#             print(f'[GROW] approveTransaction failed: {e}')
+ 
+#     return jsonify({'ok': True})
  
 
 # ── POST /api/orders/track-guest ─────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Search, X, Loader2 } from 'lucide-react'
 import productService from '@/services/productService'
 
-export default function SearchBar({ compact = false }) {
+export default function SearchBar() {
   const router = useRouter()
   const [q, setQ] = useState('')
   const [suggestions, setSuggestions] = useState([])
@@ -14,14 +14,12 @@ export default function SearchBar({ compact = false }) {
   const boxRef = useRef(null)
   const timerRef = useRef(null)
 
-  // Ferme au clic extérieur
   useEffect(() => {
     const handler = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false) }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Recherche des suggestions (debounce 250ms)
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
     if (!q.trim() || q.trim().length < 2) { setSuggestions([]); setOpen(false); return }
@@ -41,29 +39,16 @@ export default function SearchBar({ compact = false }) {
   const goToSearch = (term) => {
     const query = (term || q).trim()
     if (!query) return
-    setOpen(false)
-    setQ('')
+    setOpen(false); setQ('')
     router.push(`/products?q=${encodeURIComponent(query)}`)
   }
-
-  const goToProduct = (id) => {
-    setOpen(false)
-    setQ('')
-    router.push(`/products/${id}`)
-  }
+  const goToProduct = (id) => { setOpen(false); setQ(''); router.push(`/products/${id}`) }
 
   const onKeyDown = (e) => {
-    if (!open || suggestions.length === 0) {
-      if (e.key === 'Enter') goToSearch()
-      return
-    }
+    if (!open || suggestions.length === 0) { if (e.key === 'Enter') goToSearch(); return }
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive(a => Math.min(a + 1, suggestions.length - 1)) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(a => Math.max(a - 1, -1)) }
-    else if (e.key === 'Enter') {
-      e.preventDefault()
-      if (active >= 0 && suggestions[active]) goToProduct(suggestions[active]._id)
-      else goToSearch()
-    }
+    else if (e.key === 'Enter') { e.preventDefault(); if (active >= 0 && suggestions[active]) goToProduct(suggestions[active]._id); else goToSearch() }
     else if (e.key === 'Escape') setOpen(false)
   }
 
@@ -78,27 +63,22 @@ export default function SearchBar({ compact = false }) {
           onFocus={() => { if (suggestions.length) setOpen(true) }}
           dir="rtl"
           placeholder="חיפוש מוצרים..."
-          className={`w-full bg-slate-50 border border-slate-200 rounded-full pr-10 pl-9 text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-primary-400 focus:bg-white transition-all ${compact ? 'h-9 text-[13px]' : 'h-10 text-[14px]'}`}
+          className="w-full h-9 sm:h-10 bg-slate-50 border border-slate-200 rounded-full pr-9 pl-8 text-[13px] sm:text-[14px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-primary-400 focus:bg-white transition-all"
         />
         {loading ? (
           <Loader2 className="absolute left-3 w-4 h-4 text-slate-400 animate-spin" />
         ) : q ? (
-          <button onClick={() => { setQ(''); setSuggestions([]); setOpen(false) }} className="absolute left-3 w-4 h-4 flex items-center justify-center">
+          <button onClick={() => { setQ(''); setSuggestions([]); setOpen(false) }} className="absolute left-2.5 w-5 h-5 flex items-center justify-center">
             <X className="w-4 h-4 text-slate-400 hover:text-slate-600" />
           </button>
         ) : null}
       </div>
 
-      {/* Suggestions dropdown */}
       {open && suggestions.length > 0 && (
-        <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden z-50 max-h-[400px] overflow-y-auto">
+        <div className="absolute top-full mt-2 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-[60] max-h-[70vh] overflow-y-auto right-0 w-[calc(100vw-1.5rem)] sm:w-full sm:right-auto sm:left-0">
           {suggestions.map((p, i) => (
-            <button
-              key={p._id}
-              onClick={() => goToProduct(p._id)}
-              onMouseEnter={() => setActive(i)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-right transition-colors ${active === i ? 'bg-primary-50' : 'hover:bg-slate-50'}`}
-            >
+            <button key={p._id} onClick={() => goToProduct(p._id)} onMouseEnter={() => setActive(i)}
+              className={`w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 text-right transition-colors ${active === i ? 'bg-primary-50' : 'hover:bg-slate-50'}`}>
               {p.images?.[0] ? (
                 <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-slate-100" />
               ) : (
@@ -110,12 +90,8 @@ export default function SearchBar({ compact = false }) {
               </div>
             </button>
           ))}
-          <button
-            onClick={() => goToSearch()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-[13px] font-bold text-primary-600 bg-slate-50 hover:bg-primary-50 transition-colors border-t border-slate-100"
-          >
-            <Search className="w-4 h-4" />
-            הצג את כל התוצאות עבור "{q}"
+          <button onClick={() => goToSearch()} className="w-full flex items-center justify-center gap-2 px-4 py-3 text-[13px] font-bold text-primary-600 bg-slate-50 hover:bg-primary-50 transition-colors border-t border-slate-100">
+            <Search className="w-4 h-4" />כל התוצאות עבור "{q}"
           </button>
         </div>
       )}

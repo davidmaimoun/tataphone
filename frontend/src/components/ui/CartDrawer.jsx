@@ -12,6 +12,7 @@ export default function CartDrawer() {
   const items = useCartStore(s => s.items)
   const removeItem = useCartStore(s => s.removeItem)
   const updateQty = useCartStore(s => s.updateQty)
+  const lineKey = useCartStore(s => s.lineKey)
 
   const total = items.reduce((s, i) => s + i.price * i.qty, 0)
   const count = items.reduce((s, i) => s + i.qty, 0)
@@ -63,11 +64,11 @@ export default function CartDrawer() {
                         <p className="price-num text-[14px] mt-0.5">₪{(item.price * item.qty).toLocaleString()}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden">
-                            <button onClick={() => updateQty(item._id, item.qty - 1)} className="px-2 py-0.5 text-slate-500 hover:bg-slate-50"><Minus className="w-3 h-3" /></button>
+                            <button onClick={() => updateQty(lineKey(item), item.qty - 1)} className="px-2 py-0.5 text-slate-500 hover:bg-slate-50"><Minus className="w-3 h-3" /></button>
                             <span className="px-2 text-[13px] font-bold">{item.qty}</span>
-                            <button onClick={() => updateQty(item._id, item.qty + 1)} className="px-2 py-0.5 text-slate-500 hover:bg-slate-50"><Plus className="w-3 h-3" /></button>
+                            <button onClick={() => updateQty(lineKey(item), item.qty + 1)} className="px-2 py-0.5 text-slate-500 hover:bg-slate-50"><Plus className="w-3 h-3" /></button>
                           </div>
-                          <button onClick={() => removeItem(item._id)} className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => removeItem(lineKey(item))} className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       </div>
                     </div>
