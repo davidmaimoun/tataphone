@@ -42,4 +42,6 @@ export default function AddToCartButton({ product }) {
       </AnimatePresence>
     </button>
   )
+
+  
 }
