@@ -8,7 +8,7 @@ import useCartStore from '@/stores/cartStore'
 import useAuthStore from '@/stores/authStore'
 import useWishlistStore from '@/stores/wishlistStore'
 import { motion, AnimatePresence } from 'framer-motion'
-import SearchBar from '@/components/layout/SearchBar'
+import SearchBar, { MobileSearch } from '@/components/layout/SearchBar'
 
 export default function Navbar() {
   const router = useRouter()
@@ -46,7 +46,7 @@ export default function Navbar() {
   )
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.06)]' : 'bg-white/80 backdrop-blur-md border-b border-slate-100/60'}`}>
+    <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.06)]' : 'bg-white/80 backdrop-blur-md'}`}>
       <div className="max-w-[1440px] mx-auto px-3 sm:px-5 lg:px-6">
         <div className="flex items-center gap-2 sm:gap-3 h-14">
           {/* Logo */}
@@ -54,9 +54,14 @@ export default function Navbar() {
             <Image src="/logo.png" alt="טאטעפון" width={120} height={32} className="h-6 sm:h-7 w-auto object-contain" priority />
           </Link>
 
-          {/* Search bar — prend toute la place disponible */}
-          <div className="flex-1 min-w-0 max-w-2xl mx-auto">
+          {/* Search bar DESKTOP au centre */}
+          <div className="hidden sm:block flex-1 min-w-0 max-w-2xl mx-auto">
             <SearchBar />
+          </div>
+
+          {/* Bouton recherche MOBILE au centre */}
+          <div className="flex-1 sm:hidden mx-1">
+            <MobileSearch />
           </div>
 
           {/* Liens rapides desktop uniquement (kosher + מבצעים) */}
@@ -116,8 +121,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Actions MOBILE : cart + burger seulement */}
-          <div className="flex sm:hidden items-center gap-1.5 flex-shrink-0">
+          {/* Actions MOBILE : cart + burger */}
+          <div className="flex sm:hidden items-center gap-1 flex-shrink-0">
             <CartButtonMobile />
             <button onClick={() => setMenuOpen(v => !v)} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors">
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
