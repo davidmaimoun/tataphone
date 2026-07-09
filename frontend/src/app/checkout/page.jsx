@@ -103,7 +103,6 @@ export default function CheckoutPage() {
             <div>
               <label className="block text-[13px] font-semibold text-slate-600 mb-1.5">הערות</label>
               <div className="relative">
-                <MessageSquare className="absolute top-3.5 right-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
                 <textarea value={form.notes} onChange={set('notes')} rows={3} dir="rtl" placeholder="הערות אופציונליות..." className="input pr-10 resize-none w-full" style={{minHeight:80}} />
               </div>
             </div>
