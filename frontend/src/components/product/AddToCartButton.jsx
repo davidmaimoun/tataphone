@@ -23,7 +23,7 @@ export default function AddToCartButton({ product }) {
     }
     addItem(product)
     openCart()
-    toast.success(`${product.name} הוסף לסל! 🛒`)
+    // toast.success(`${product.name} הוסף לסל! 🛒`)
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
   }
@@ -37,7 +37,7 @@ export default function AddToCartButton({ product }) {
       }}>
       <AnimatePresence mode="wait" initial={false}>
         {added
-          ? <motion.span key="c" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} />נוסף!</motion.span>
+          ? <motion.span key="c" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1"><Check className="w-3.5 h-3.5" strokeWidth={2.5} />הוסף!</motion.span>
           : <motion.span key="s" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1"><ShoppingCart className="w-3.5 h-3.5" />{product.hasVariants ? 'בחר אפשרויות' : 'הוסף לסל'}</motion.span>}
       </AnimatePresence>
     </button>
