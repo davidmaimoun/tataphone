@@ -83,7 +83,7 @@ export function DesktopSearch() {
       <div className="relative flex items-center">
         <Search className="absolute right-3 w-4 h-4 text-slate-400 pointer-events-none" />
         <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={onKeyDown} onFocus={() => suggestions.length && setOpen(true)}
-          dir="rtl" placeholder="חיפוש מוצרים..."
+          dir="rtl" placeholder="חיפוש"
           className="w-full h-10 bg-slate-50 border border-slate-200 rounded-full pr-9 pl-8 text-[14px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-primary-400 focus:bg-white transition-all" />
         {loading ? <Loader2 className="absolute left-3 w-4 h-4 text-slate-400 animate-spin" />
          : q ? <button onClick={() => { setQ(''); setSuggestions([]) }} className="absolute left-3"><X className="w-4 h-4 text-slate-400 hover:text-slate-600" /></button> : null}
@@ -119,23 +119,23 @@ export function MobileSearch() {
       {/* Bouton recherche (loupe + texte) dans la navbar */}
       <button onClick={() => setOpen(true)} className="flex items-center justify-center gap-2 w-full h-9 px-4 rounded-full bg-slate-50 border border-slate-200 text-slate-400 hover:border-primary-300 transition-colors" aria-label="חיפוש">
         <Search className="w-4 h-4" />
-        <span className="text-[13px] font-medium">חיפוש מוצרים...</span>
+        <span className="text-[13px] font-medium">חיפוש</span>
       </button>
 
       {/* Overlay sombre + drawer latéral */}
-      <div className={`fixed inset-0 z-[9999] transition-all duration-200 ${open ? 'visible' : 'invisible'}`}>
+      <div className={`fixed inset-0 z-[9999] ${open ? 'pointer-events-auto' : 'pointer-events-none'}`} style={{ height: '100dvh' }}>
         {/* Fond sombre */}
-        <div className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={close} />
+        <div className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={close} />
 
         {/* Drawer qui glisse depuis la droite */}
-        <div className={`absolute right-0 top-0 h-full w-[88vw] max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute right-0 top-0 bottom-0 w-[88vw] max-w-sm bg-white shadow-2xl flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`} style={{ height: '100dvh' }}>
           {/* En-tête : search + fermer */}
           <div className="flex items-center gap-2 px-3 py-3 border-b border-slate-100 flex-shrink-0">
             <div className="relative flex-1 min-w-0">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') goSearch(); if (e.key === 'Escape') close() }}
-                dir="rtl" placeholder="חיפוש מוצרים..."
+                dir="rtl" placeholder="חיפוש"
                 className="w-full h-11 bg-slate-50 border border-slate-200 rounded-full pr-9 pl-9 text-[15px] text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-primary-400 focus:bg-white" />
               {loading ? <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 animate-spin" />
                : q ? <button onClick={() => { setQ(''); setSuggestions([]); inputRef.current?.focus() }} className="absolute left-3 top-1/2 -translate-y-1/2"><X className="w-4 h-4 text-slate-400" /></button> : null}
