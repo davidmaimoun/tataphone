@@ -23,7 +23,7 @@ export default function AddToCartButton({ product }) {
     }
     addItem(product)
     openCart()
-    toast.success(`${product.name} נוסף לסל! 🛒`)
+    toast.success(`${product.name} הוסף לסל! 🛒`)
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
   }

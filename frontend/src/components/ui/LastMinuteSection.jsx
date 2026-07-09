@@ -58,7 +58,8 @@ export default function LastMinuteSection({ compact = false }) {
     productService.getAll({ isAccessory: 'true', limit: 30 }).then(d => {
       let maxPrice = 200
       try { maxPrice = parseInt(localStorage.getItem('lm_maxPrice') || '200') } catch {}
-      let list = (d.products || []).filter(p => p.price <= maxPrice)
+      const cartIds = new Set(cartItems.map(i => i._id))
+      let list = (d.products || []).filter(p => p.price <= maxPrice && !cartIds.has(p._id))
       const cartIsKosher = cartItems.some(i => i.isKosher === true)
       list.sort((a, b) => {
         const sa = scoreAccessory(a, cartItems) + (cartIsKosher && a.isKosher ? 5 : 0)
