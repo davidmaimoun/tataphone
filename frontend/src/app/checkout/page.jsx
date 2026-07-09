@@ -1,15 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, User, Mail, Phone, MessageSquare, FlaskConical, Check, ShieldCheck } from 'lucide-react'
+import { User, Mail, Phone, MessageSquare, FlaskConical, Check, ShieldCheck } from 'lucide-react'
 import useCartStore from '@/stores/cartStore'
 import useAuthStore from '@/stores/authStore'
 import PaymentSection from '@/components/checkout/PaymentSection'
+import AddressAutocomplete from '@/components/checkout/AddressAutocomplete'
 import Field from '@/components/common/Field'
 import settingsService, { computeShipping } from '@/services/settingsService'
 import toast from 'react-hot-toast'
 
-const TEST_DATA = { firstName:'David', lastName:'Maimoun', email:'davidmaimoun@hotmail.com', phone:'0501234567', address:'רחוב הרצל 12', city:'תל אביב', notes:'Test' }
+const TEST_DATA = { firstName:'David', lastName:'Maimoun', email:'davidmaimoun@hotmail.com', phone:'0501234567', street:'הרצל', houseNumber:'12', apartment:'', city:'תל אביב', notes:'Test' }
 
 function validatePhone(phone) { const d = phone.replace(/\D/g, ''); return d.length >= 9 && d.length <= 10 }
 
@@ -22,9 +23,23 @@ export default function CheckoutPage() {
   const [settings, setSettings] = useState(null)
   const [form, setForm] = useState({
     firstName: user?.name?.split(' ')[0] || '', lastName: user?.name?.split(' ').slice(1).join(' ') || '',
-    email: user?.email || '', phone:'', address:'', city:'', notes:'',
+    email: user?.email || '', phone:'', street:'', houseNumber:'', apartment:'', city:'', notes:'',
   })
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }))
+
+  // Sélection d'une suggestion d'autocomplete → remplit rue/ville (numéro laissé à l'utilisateur si absent)
+  const handleAddressSelect = (s) => {
+    setForm(p => ({
+      ...p,
+      street: s.street || p.street,
+      city: s.city || p.city,
+      houseNumber: s.houseNumber || p.houseNumber,
+    }))
+  }
+
+  // Adresse complète composée pour l'envoi à l'API (compatible avec le format existant côté backend)
+  const composedAddress = [form.street, form.houseNumber].filter(Boolean).join(' ') + (form.apartment ? `, דירה ${form.apartment}` : '')
+  const formForPayment = { ...form, address: composedAddress }
 
   // Charge les settings (TVA, livraison) depuis l'API
   useEffect(() => { settingsService.get().then(setSettings).catch(() => {}) }, [])
@@ -75,8 +90,16 @@ export default function CheckoutPage() {
           </div>
           <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4">
             <h2 className="font-bold text-slate-800 text-[16px]">כתובת למשלוח</h2>
-            <Field label="כתובת" icon={MapPin} type="text" value={form.address} onChange={set('address')} required placeholder="רחוב הרצל 12" />
-            <Field label="עיר" type="text" value={form.city} onChange={set('city')} required placeholder="תל אביב" />
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-2">
+                <AddressAutocomplete label="רחוב" value={form.street} onChange={(val) => setForm(p => ({ ...p, street: val }))} onSelect={handleAddressSelect} required placeholder="הרצל" />
+              </div>
+              <Field label="מספר בית" type="text" inputMode="numeric" value={form.houseNumber} onChange={set('houseNumber')} required placeholder="12" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="עיר" type="text" value={form.city} onChange={set('city')} required placeholder="תל אביב" />
+              <Field label="דירה / קומה (אופציונלי)" type="text" value={form.apartment} onChange={set('apartment')} placeholder="דירה 4, קומה 2" />
+            </div>
             <div>
               <label className="block text-[13px] font-semibold text-slate-600 mb-1.5">הערות</label>
               <div className="relative">
@@ -101,7 +124,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between text-[12px] text-slate-400"><span>מתוכם מע״מ</span><span>₪{vatAmount.toLocaleString()}</span></div>
               <div className="flex justify-between items-center pt-2 border-t border-slate-100"><span className="font-black text-[15px] text-slate-800">סה"כ</span><span className="price-num text-primary-600" style={{fontSize:22}}>₪{totalTTC.toLocaleString()}</span></div>
             </div>
-            <PaymentSection form={form} totalTTC={totalTTC} vatAmount={vatAmount} subtotal={subtotal} shipping={shipping} items={items} agreed={agreed} validatePhone={validatePhone} onSuccess={handlePaymentSuccess} />
+            <PaymentSection form={formForPayment} totalTTC={totalTTC} vatAmount={vatAmount} subtotal={subtotal} shipping={shipping} items={items} agreed={agreed} validatePhone={validatePhone} onSuccess={handlePaymentSuccess} />
           </div>
           <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4">
             <label className="flex gap-3 cursor-pointer">

@@ -59,6 +59,7 @@ def create_app():
     from .routes.reviews   import reviews_bp
     from app.routes.integrations import integrations_bp
     from app.routes.settings import settings_bp
+    from app.routes.address import address_bp
 
     app.register_blueprint(settings_bp, url_prefix='/api/settings')
     app.register_blueprint(wishlist_bp,    url_prefix='/api/wishlist')
@@ -72,6 +73,7 @@ def create_app():
     app.register_blueprint(contact_bp,    url_prefix='/api/contact')
     app.register_blueprint(uploads_bp,    url_prefix='/api/uploads')
     app.register_blueprint(integrations_bp, url_prefix='/api/integrations')
+    app.register_blueprint(address_bp,      url_prefix='/api/address')
 
 
 
