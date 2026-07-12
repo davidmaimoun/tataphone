@@ -417,6 +417,10 @@ def grow_create():
     order_id = data.get('orderId', '')
     customer = data.get('customer', {})
 
+    # Code TVA attendu par Grow : 1 = TVA normale, 3 = exonere de TVA.
+    # Configurable via .env (GROW_VAT_TYPE) pour ne pas avoir a redeployer si ca change.
+    vat_type = int(os.getenv('GROW_VAT_TYPE', 3))
+
     make_webhook = os.getenv('GROW_MAKE_WEBHOOK', '')
     if not make_webhook:
         return jsonify({'error': 'Grow/Make not configured'}), 500
@@ -428,16 +432,36 @@ def grow_create():
     # ── Détail des produits de la commande (déjà stockés lors de la création de l'order) ──
     order = OrderModel.get_by_id(order_id) if order_id else None
     order_items = (order or {}).get('items', [])
-    products = [
-        {
-            'catalogNumber': str(i.get('product', '')),
+
+    # Les items de commande ne stockent pas les photos → on va les chercher sur les produits.
+    # Grow veut une URL d'image publique, carrée (1:1), en PNG/JPEG → grow_image_url() la construit.
+    from app.services.r2_storage import grow_image_url
+    images_by_product = {}
+    for i in order_items:
+        pid = str(i.get('product', ''))
+        if not pid or pid in images_by_product:
+            continue
+        try:
+            p = ProductModel.get_by_id(pid) or {}
+            imgs = p.get('images') or []
+            images_by_product[pid] = grow_image_url(imgs[0]) if imgs else ''
+        except Exception:
+            images_by_product[pid] = ''
+
+    products = []
+    for i in order_items:
+        pid = str(i.get('product', ''))
+        item = {
+            'catalogNumber': pid,
             'name':          i.get('name') or 'מוצר',
             'price':         f"{float(i.get('price', 0)):.2f}",
             'quantity':      int(i.get('qty', 1) or 1),
-            'vatType':       3,   # 1 = TVA normale (Grow attend un code numérique, pas 'regular')
+            'vatType':       vat_type,
         }
-        for i in order_items
-    ]
+        img = images_by_product.get(pid) or ''
+        if img:
+            item['productUrl'] = img   # ← champ "Product URL" du module Grow dans Make
+        products.append(item)
     # Si le montant payé (produits + livraison) diffère de la somme des lignes produits,
     # on ajoute une ligne "משלוח" pour que le total du reçu corresponde exactement.
     items_total = sum(float(i.get('price', 0)) * int(i.get('qty', 1) or 1) for i in order_items)
@@ -448,12 +472,12 @@ def grow_create():
             'name':          'משלוח',
             'price':         f'{shipping_amount:.2f}',
             'quantity':      1,
-            'vatType':       1,   # 1 = TVA normale (Grow attend un code numérique, pas 'regular')
+            'vatType':       vat_type,
         })
     # Filet de sécurité : si on n'a pas réussi à récupérer les items (order introuvable, etc.),
     # on retombe sur une ligne unique plutôt que d'échouer la création du paiement.
     if not products:
-        products = [{'catalogNumber': '', 'name': title, 'price': f'{amount:.2f}', 'quantity': 1, 'vatType': 1}]
+        products = [{'catalogNumber': '', 'name': title, 'price': f'{amount:.2f}', 'quantity': 1, 'vatType': vat_type}]
 
     payload = {
         'fullName':    full_name or 'לקוח',

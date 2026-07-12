@@ -127,3 +127,19 @@ def delete_from_r2(image_url: str):
         print(f"[R2] deleted {key}")
     except Exception as e:
         print(f"[R2] delete failed: {e}")
+
+def grow_image_url(image_url: str, size: int = 300) -> str:
+    """URL d'image compatible Grow (module 'Create Payment Link' → champ Product URL).
+
+    Grow exige : PNG ou JPEG, ratio 1:1, min 60x60 px, max 2 Mo.
+    Nos URLs stockées utilisent `format=auto` (WebP/AVIF) et une largeur libre → non conformes.
+    On reconstruit donc une URL de transformation Cloudflare carrée et forcée en JPEG :
+      fit=cover  → recadre en carré exact (garantit le ratio 1:1)
+      format=jpeg → force le JPEG (pas de WebP/AVIF)
+    Retourne '' si l'image n'est pas hébergée sur R2 (Grow ignorera alors le champ).
+    """
+    key = _key_from_url(image_url)
+    if not key or not R2_PUBLIC_URL:
+        return ''
+    opts = f"width={size},height={size},fit=cover,format=jpeg,quality=85"
+    return f"{R2_PUBLIC_URL}/cdn-cgi/image/{opts}/{R2_PUBLIC_URL}/{key}"
