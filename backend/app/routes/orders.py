@@ -434,7 +434,7 @@ def grow_create():
             'name':          i.get('name') or 'מוצר',
             'price':         f"{float(i.get('price', 0)):.2f}",
             'quantity':      int(i.get('qty', 1) or 1),
-            'vatType':       'regular',
+            'vatType':       1,   # 1 = TVA normale (Grow attend un code numérique, pas 'regular')
         }
         for i in order_items
     ]
@@ -448,12 +448,12 @@ def grow_create():
             'name':          'משלוח',
             'price':         f'{shipping_amount:.2f}',
             'quantity':      1,
-            'vatType':       'regular',
+            'vatType':       1,   # 1 = TVA normale (Grow attend un code numérique, pas 'regular')
         })
     # Filet de sécurité : si on n'a pas réussi à récupérer les items (order introuvable, etc.),
     # on retombe sur une ligne unique plutôt que d'échouer la création du paiement.
     if not products:
-        products = [{'catalogNumber': '', 'name': title, 'price': f'{amount:.2f}', 'quantity': 1, 'vatType': 'regular'}]
+        products = [{'catalogNumber': '', 'name': title, 'price': f'{amount:.2f}', 'quantity': 1, 'vatType': 1}]
 
     payload = {
         'fullName':    full_name or 'לקוח',
