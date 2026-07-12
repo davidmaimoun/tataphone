@@ -434,7 +434,7 @@ def grow_create():
             'name':          i.get('name') or 'מוצר',
             'price':         f"{float(i.get('price', 0)):.2f}",
             'quantity':      int(i.get('qty', 1) or 1),
-            'vatType':       1,   # 1 = TVA normale (Grow attend un code numérique, pas 'regular')
+            'vatType':       3,   # 1 = TVA normale (Grow attend un code numérique, pas 'regular')
         }
         for i in order_items
     ]
