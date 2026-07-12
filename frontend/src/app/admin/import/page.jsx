@@ -13,6 +13,7 @@ export default function AdminImport() {
   const [result, setResult] = useState(null)
   const [overwriteSku, setOverwriteSku] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
+  const [jsonFileName, setJsonFileName] = useState('')
 
   // ── État du tab API (Priority) ──
   const [priorityStatus, setPriorityStatus] = useState(null)
@@ -48,6 +49,22 @@ export default function AdminImport() {
     setBusy(true)
     try { const fd = new FormData(); fd.append('file', file); const r = await productAdmin.importExcel(fd); setResult(r); toast.success(`הקובץ יובא! ${r.imported ? `(${r.imported} מוצרים)` : ''} 🎉`) }
     catch (e) { toast.error(e?.response?.data?.error || 'שגיאה בייבוא') } finally { setBusy(false) }
+  }
+
+  // Charge un fichier .json depuis le disque dans la zone de texte (relecture avant import)
+  const loadJsonFile = async (file) => {
+    if (!file) return
+    setJsonFileName('')
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text)              // valide le JSON avant de l'afficher
+      if (!Array.isArray(parsed)) return toast.error('הקובץ חייב להכיל מערך של מוצרים')
+      setJsonText(JSON.stringify(parsed, null, 2))
+      setJsonFileName(file.name)
+      toast.success(`נטענו ${parsed.length} מוצרים — בדוק ולחץ על ייבוא`)
+    } catch {
+      toast.error('קובץ JSON לא תקין')
+    }
   }
 
   // ── Priority API (placeholder — branché plus tard sur le backend) ──
@@ -239,7 +256,16 @@ export default function AdminImport() {
 
             <div className="bg-white rounded-2xl border border-slate-100 p-6">
               <div className="flex items-center gap-2 mb-3"><FileJson className="w-5 h-5 text-primary-600" /><h2 className="font-bold text-slate-800">ייבוא מ-JSON</h2></div>
-              <textarea value={jsonText} onChange={e => setJsonText(e.target.value)} rows={8} dir="ltr" placeholder={schema ? buildExample() : '[{"name":"...","price":100}]'} className="input font-mono text-[12px] resize-none w-full mb-3" />
+              {/* Upload d'un fichier .json (alternative au copier-coller) */}
+              <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200 rounded-xl p-6 cursor-pointer hover:border-primary-300 transition-colors mb-3">
+                <Upload className="w-7 h-7 text-slate-300" />
+                <span className="text-[13px] text-slate-500">לחץ להעלאת קובץ .json</span>
+                {jsonFileName && <span className="text-[12px] font-bold text-primary-600 flex items-center gap-1"><Check className="w-3.5 h-3.5" />{jsonFileName}</span>}
+                <input type="file" accept=".json,application/json" className="hidden" onChange={e => loadJsonFile(e.target.files[0])} disabled={busy} />
+              </label>
+
+              <p className="text-[11px] text-slate-400 mb-2">או הדבק את ה-JSON ישירות:</p>
+              <textarea value={jsonText} onChange={e => { setJsonText(e.target.value); setJsonFileName('') }} rows={8} dir="ltr" placeholder={schema ? buildExample() : '[{"name":"...","price":100}]'} className="input font-mono text-[12px] resize-none w-full mb-3" />
               <button onClick={importJson} disabled={busy || !jsonText.trim()} className="btn btn-primary px-6 py-2.5">{busy ? 'מייבא...' : 'ייבא JSON'}</button>
             </div>
 

@@ -435,18 +435,22 @@ def grow_create():
 
     # Les items de commande ne stockent pas les photos → on va les chercher sur les produits.
     # Grow veut une URL d'image publique, carrée (1:1), en PNG/JPEG → grow_image_url() la construit.
-    from app.services.r2_storage import grow_image_url
+    # Interrupteur .env : GROW_SEND_IMAGES=false désactive l'envoi des photos à Grow
+    # (utile si Cloudflare pose problème — le paiement continue de fonctionner sans images).
+    send_images = os.getenv('GROW_SEND_IMAGES', 'true').lower() not in ('false', '0', 'no')
     images_by_product = {}
-    for i in order_items:
-        pid = str(i.get('product', ''))
-        if not pid or pid in images_by_product:
-            continue
-        try:
-            p = ProductModel.get_by_id(pid) or {}
-            imgs = p.get('images') or []
-            images_by_product[pid] = grow_image_url(imgs[0]) if imgs else ''
-        except Exception:
-            images_by_product[pid] = ''
+    if send_images:
+        from app.services.r2_storage import grow_image_url
+        for i in order_items:
+            pid = str(i.get('product', ''))
+            if not pid or pid in images_by_product:
+                continue
+            try:
+                p = ProductModel.get_by_id(pid) or {}
+                imgs = p.get('images') or []
+                images_by_product[pid] = grow_image_url(imgs[0]) if imgs else ''
+            except Exception:
+                images_by_product[pid] = ''
 
     products = []
     for i in order_items:
