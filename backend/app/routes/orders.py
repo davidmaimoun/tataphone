@@ -408,21 +408,53 @@ def paypal_capture():
 # ── POST /api/orders/grow/create ─────────────────────────────────────────────
 @orders_bp.route('/grow/create', methods=['POST'])
 def grow_create():
-    """Crée un lien de paiement Grow VIA MAKE."""
+    """Crée un lien de paiement Grow VIA MAKE — avec le détail des produits (items),
+    pour que le reçu envoyé par Grow au client liste chaque article séparément
+    au lieu d'un seul total agrégé."""
     import os, json as _json, requests as req
     data     = request.get_json() or {}
     amount   = float(data.get('amount', 0) or 0)
     order_id = data.get('orderId', '')
     customer = data.get('customer', {})
- 
+
     make_webhook = os.getenv('GROW_MAKE_WEBHOOK', '')
     if not make_webhook:
         return jsonify({'error': 'Grow/Make not configured'}), 500
- 
+
     full_name = f"{customer.get('firstName','')} {customer.get('lastName','')}".strip()
     phone = (customer.get('phone') or '').strip() or '0500000000'
     title = f"הזמנה #{str(order_id)[-8:].upper()}"
- 
+
+    # ── Détail des produits de la commande (déjà stockés lors de la création de l'order) ──
+    order = OrderModel.get_by_id(order_id) if order_id else None
+    order_items = (order or {}).get('items', [])
+    products = [
+        {
+            'catalogNumber': str(i.get('product', '')),
+            'name':          i.get('name') or 'מוצר',
+            'price':         f"{float(i.get('price', 0)):.2f}",
+            'quantity':      int(i.get('qty', 1) or 1),
+            'vatType':       'regular',
+        }
+        for i in order_items
+    ]
+    # Si le montant payé (produits + livraison) diffère de la somme des lignes produits,
+    # on ajoute une ligne "משלוח" pour que le total du reçu corresponde exactement.
+    items_total = sum(float(i.get('price', 0)) * int(i.get('qty', 1) or 1) for i in order_items)
+    shipping_amount = round(amount - items_total, 2)
+    if shipping_amount > 0:
+        products.append({
+            'catalogNumber': '',
+            'name':          'משלוח',
+            'price':         f'{shipping_amount:.2f}',
+            'quantity':      1,
+            'vatType':       'regular',
+        })
+    # Filet de sécurité : si on n'a pas réussi à récupérer les items (order introuvable, etc.),
+    # on retombe sur une ligne unique plutôt que d'échouer la création du paiement.
+    if not products:
+        products = [{'catalogNumber': '', 'name': title, 'price': f'{amount:.2f}', 'quantity': 1, 'vatType': 'regular'}]
+
     payload = {
         'fullName':    full_name or 'לקוח',
         'phone':       phone,
@@ -432,8 +464,9 @@ def grow_create():
         'email':       customer.get('email', ''),
         'productName': title,
         'price':       f'{amount:.2f}',
+        'items':       products,   # ← à mapper sur le champ "Products" du module Grow "Create Payment Link" dans Make
     }
- 
+
     try:
         resp = req.post(make_webhook, json=payload, timeout=30)
         # Make renvoie le JSON SANS content-type → on parse directement le texte.
