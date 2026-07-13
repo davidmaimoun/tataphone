@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { CreditCard, Loader2, FlaskConical, ShieldCheck } from 'lucide-react'
+import { Wallet, Loader2, FlaskConical, ShieldCheck } from 'lucide-react'
 import orderService from '@/services/orderService'
 import paymentService from '@/services/paymentService'
 import toast from 'react-hot-toast'
@@ -82,9 +82,17 @@ export default function PaymentSection({ form, totalTTC, subtotal, vatAmount, sh
       <button onClick={handlePayPal} disabled={!!loading} type="button" className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[14px] transition-all hover:opacity-90 hover:shadow-md disabled:opacity-40" style={{ background:'#FFC439', color:'#003087' }}>
         {loading==='paypal' ? <Spin col="#003087" /> : <><svg viewBox="0 0 24 24" className="h-4 w-4" fill="#003087"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106z"/></svg>PayPal</>}
       </button>
-      <button onClick={handleGrow} disabled={!!loading} type="button" className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-[14px] text-white transition-all hover:opacity-90 hover:shadow-md disabled:opacity-40" style={{ background:'linear-gradient(135deg,var(--primary),var(--primary-deep))' }}>
-        {loading==='grow' ? <Spin /> : <><CreditCard className="w-4 h-4" />תשלום מאובטח בכרטיס אשראי</>}
+      <button onClick={handleGrow} disabled={!!loading} type="button" className="w-full flex flex-col items-center justify-center gap-0.5 py-3 rounded-xl font-bold text-white transition-all hover:opacity-90 hover:shadow-md disabled:opacity-40" style={{ background:'linear-gradient(135deg,var(--primary),var(--primary-deep))' }}>
+        {loading==='grow' ? <Spin /> : (
+          <>
+            <span className="flex items-center gap-2 text-[14px]"><Wallet className="w-4 h-4" />המשך לתשלום מאובטח</span>
+            <span className="text-[10px] font-medium opacity-90">אשראי · Bit · Google Pay · Apple Pay</span>
+          </>
+        )}
       </button>
+      {!loading && (
+        <p className="text-[10px] text-slate-400 text-center leading-4">בעמוד הבא תוכל לבחור את אמצעי התשלום המועדף עליך</p>
+      )}
       {IS_TEST && (
         <button onClick={handleTest} disabled={!!loading} type="button" className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-[12px] bg-amber-50 border-2 border-dashed border-amber-300 text-amber-700 hover:bg-amber-100 transition-all disabled:opacity-40">
           {loading==='test' ? <Spin col="#B45309" /> : <><FlaskConical className="w-3.5 h-3.5" />בדיקה — ללא תשלום</>}

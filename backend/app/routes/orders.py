@@ -452,14 +452,21 @@ def grow_create():
             except Exception:
                 images_by_product[pid] = ''
 
+    # IMPORTANT : Grow calcule le montant a debiter lui-meme (prix x quantite) a partir
+    # de ce tableau — le champ 'amount' est ignore par le module "Create Payment Link".
+    # Les cles doivent donc correspondre EXACTEMENT au schema Grow (camelCase), sinon
+    # la ligne retombe sur ses valeurs par defaut (quantite = 1) et le client est mal debite.
+    # On envoie 'productName' (schema Grow) ET 'name' (compat) par securite.
     products = []
     for i in order_items:
         pid = str(i.get('product', ''))
+        pname = i.get('name') or 'מוצר'
         item = {
             'catalogNumber': pid,
-            'name':          i.get('name') or 'מוצר',
-            'price':         f"{float(i.get('price', 0)):.2f}",
-            'quantity':      int(i.get('qty', 1) or 1),
+            'productName':   pname,
+            'name':          pname,
+            'price':         round(float(i.get('price', 0)), 2),   # nombre, pas string
+            'quantity':      int(i.get('qty', 1) or 1),            # nombre
             'vatType':       vat_type,
         }
         img = images_by_product.get(pid) or ''
@@ -473,15 +480,16 @@ def grow_create():
     if shipping_amount > 0:
         products.append({
             'catalogNumber': '',
+            'productName':   'משלוח',
             'name':          'משלוח',
-            'price':         f'{shipping_amount:.2f}',
+            'price':         round(shipping_amount, 2),
             'quantity':      1,
             'vatType':       vat_type,
         })
     # Filet de sécurité : si on n'a pas réussi à récupérer les items (order introuvable, etc.),
     # on retombe sur une ligne unique plutôt que d'échouer la création du paiement.
     if not products:
-        products = [{'catalogNumber': '', 'name': title, 'price': f'{amount:.2f}', 'quantity': 1, 'vatType': vat_type}]
+        products = [{'catalogNumber': '', 'productName': title, 'name': title, 'price': round(amount, 2), 'quantity': 1, 'vatType': vat_type}]
 
     payload = {
         'fullName':    full_name or 'לקוח',
