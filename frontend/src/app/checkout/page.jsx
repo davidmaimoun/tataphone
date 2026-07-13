@@ -18,6 +18,7 @@ export default function CheckoutPage() {
   const items = useCartStore(s => s.items)
   const clearCart = useCartStore(s => s.clearCart)
   const user = useAuthStore(s => s.user)
+  const isAdmin = user?.role === 'admin'   // garde-fou : paiement + bouton test reserves a l'admin tant que le site n'est pas ouvert au public
   const router = useRouter()
   const [agreed, setAgreed] = useState(false)
   const [settings, setSettings] = useState(null)
@@ -71,7 +72,7 @@ export default function CheckoutPage() {
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-black text-2xl text-slate-900">פרטי הזמנה</h1>
-        <button onClick={fillTestData} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-bold bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors"><FlaskConical className="w-3.5 h-3.5" />מלא טופס בדיקה</button>
+        {isAdmin && <button onClick={fillTestData} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-bold bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors"><FlaskConical className="w-3.5 h-3.5" />מלא טופס בדיקה</button>}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-5">
@@ -103,6 +104,7 @@ export default function CheckoutPage() {
             <div>
               <label className="block text-[13px] font-semibold text-slate-600 mb-1.5">הערות</label>
               <div className="relative">
+                <MessageSquare className="absolute top-3.5 right-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
                 <textarea value={form.notes} onChange={set('notes')} rows={3} dir="rtl" placeholder="הערות אופציונליות..." className="input pr-10 resize-none w-full" style={{minHeight:80}} />
               </div>
             </div>
@@ -120,10 +122,17 @@ export default function CheckoutPage() {
                 <span>משלוח</span>
                 <span>{shipping === 0 ? <span className="text-green-600 font-semibold">חינם</span> : `₪${shipping.toLocaleString()}`}</span>
               </div>
-              <div className="flex justify-between text-[12px] text-slate-400"><span>מתוכם מע״מ</span><span>₪{vatAmount.toLocaleString()}</span></div>
+              {vatRate > 0 && <div className="flex justify-between text-[12px] text-slate-400"><span>מתוכם מע״מ</span><span>₪{vatAmount.toLocaleString()}</span></div>}
               <div className="flex justify-between items-center pt-2 border-t border-slate-100"><span className="font-black text-[15px] text-slate-800">סה"כ</span><span className="price-num text-primary-600" style={{fontSize:22}}>₪{totalTTC.toLocaleString()}</span></div>
             </div>
-            <PaymentSection form={formForPayment} totalTTC={totalTTC} vatAmount={vatAmount} subtotal={subtotal} shipping={shipping} items={items} agreed={agreed} validatePhone={validatePhone} onSuccess={handlePaymentSuccess} />
+            {isAdmin ? (
+              <PaymentSection form={formForPayment} totalTTC={totalTTC} vatAmount={vatAmount} subtotal={subtotal} shipping={shipping} items={items} agreed={agreed} validatePhone={validatePhone} onSuccess={handlePaymentSuccess} />
+            ) : (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
+                <p className="text-[14px] font-bold text-amber-800 mb-1">🚧 האתר בהרצה</p>
+                <p className="text-[12px] text-amber-700 leading-5">התשלום עדיין לא פתוח לרכישות. נשמח לעדכן אותך ברגע שנפתח!</p>
+              </div>
+            )}
           </div>
           <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4">
             <label className="flex gap-3 cursor-pointer">
