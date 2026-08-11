@@ -282,10 +282,15 @@ export default function AdminProducts() {
   const [exporting, setExporting] = useState(false)
 
   // Pagination + tri
-  const [perPage, setPerPage] = useState(50)        // 50 | 100 | 200 | 'all'
+  const [perPage, setPerPage] = useState(50)        // 50 | 100 | 200 | 250 | 500 | 'all'
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState('createdAt')  // colonne triée
   const [sortDir, setSortDir] = useState('desc')     // 'asc' | 'desc'
+
+  // Sélection pour export par batch (Set d'_id)
+  const [selected, setSelected] = useState(() => new Set())
+  const toggleSelect = (id) => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  const clearSelection = () => setSelected(new Set())
 
   const load = async () => { setLoading(true); try { const { default: api } = await import('@/services/api'); const r = await api.get('/products/admin/list'); setProducts(r.data.products || []) } catch { productService.getAll({ limit: 9999 }).then(d => setProducts(d.products || [])) } finally { setLoading(false) } }
   useEffect(() => { load() }, [])
@@ -348,6 +353,57 @@ export default function AdminProducts() {
     } catch { toast.error('שגיאה בייצוא') } finally { setExporting(false) }
   }
 
+  // ── Export de la SÉLECTION (côté client) — JSON ou CSV, pour travail par batch ──
+  // Le but : l'admin coche quelques produits, les exporte, les enrichit (ex: descriptions
+  // via Claude), puis réimporte le fichier modifié dans l'onglet Import.
+  const exportSelected = (format) => {
+    const chosen = products.filter(p => selected.has(p._id))
+    if (chosen.length === 0) { toast.error('לא נבחרו מוצרים'); return }
+
+    // On exporte les champs utiles à l'édition (on garde _id et sku pour le ré-appariement à l'import)
+    const rows = chosen.map(p => ({
+      _id:          p._id,
+      sku:          p.sku || '',
+      name:         p.name || '',
+      brand:        p.brand || '',
+      category:     p.category || '',
+      price:        p.price ?? '',
+      description:  p.description || '',
+      tags:         p.tags || [],
+      specs:        p.specs || {},
+    }))
+
+    const stamp = new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')
+    let blob, filename
+
+    if (format === 'json') {
+      blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' })
+      filename = `tataphone_batch_${chosen.length}_${stamp}.json`
+    } else {
+      // CSV : on aplatit tags (| séparé) et specs (JSON) pour rester lisible dans Excel
+      const esc = (v) => {
+        const s = String(v ?? '')
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s
+      }
+      const headers = ['_id','sku','name','brand','category','price','description','tags','specs']
+      const lines = [headers.join(',')]
+      for (const r of rows) {
+        lines.push([
+          r._id, esc(r.sku), esc(r.name), esc(r.brand), esc(r.category), r.price,
+          esc(r.description), esc((r.tags||[]).join('|')), esc(JSON.stringify(r.specs||{})),
+        ].join(','))
+      }
+      // BOM pour qu'Excel lise l'hébreu correctement
+      blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8' })
+      filename = `tataphone_batch_${chosen.length}_${stamp}.csv`
+    }
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click()
+    URL.revokeObjectURL(url)
+    toast.success(`יוצאו ${chosen.length} מוצרים (${format.toUpperCase()}) 💾`)
+  }
+
   // ── Tri : clic sur une colonne ──
   const toggleSort = (col) => {
     if (sortBy === col) { setSortDir(d => d === 'asc' ? 'desc' : 'asc') }
@@ -374,6 +430,16 @@ export default function AdminProducts() {
   const totalPages = isAll ? 1 : Math.max(1, Math.ceil(sorted.length / perPage))
   const curPage = Math.min(page, totalPages)
   const paged = isAll ? sorted : sorted.slice((curPage - 1) * perPage, curPage * perPage)
+
+  // Sélection "tout / rien" sur la page courante
+  const pageIds = paged.map(p => p._id)
+  const allPageSelected = pageIds.length > 0 && pageIds.every(id => selected.has(id))
+  const toggleSelectPage = () => setSelected(prev => {
+    const n = new Set(prev)
+    if (allPageSelected) pageIds.forEach(id => n.delete(id))
+    else pageIds.forEach(id => n.add(id))
+    return n
+  })
 
   // En-tête de colonne triable
   const SortHeader = ({ col, label, className = '' }) => (
@@ -412,7 +478,7 @@ export default function AdminProducts() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[12px] text-slate-400">הצג:</span>
-          {[50, 100, 200, 'all'].map(n => (
+          {[50, 100, 200, 250, 500, 'all'].map(n => (
             <button key={n} onClick={() => { setPerPage(n); setPage(1) }}
               className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${perPage === n ? 'bg-primary-600 text-white' : 'bg-white border border-slate-200 text-slate-500 hover:border-primary-300'}`}>
               {n === 'all' ? 'הכל' : n}
@@ -421,10 +487,23 @@ export default function AdminProducts() {
         </div>
       </div>
 
+      {/* Barre d'action sélection (visible quand au moins 1 produit coché) */}
+      {selected.size > 0 && (
+        <div className="flex items-center justify-between gap-3 mb-3 px-4 py-2.5 rounded-xl bg-primary-50 border border-primary-200 flex-wrap">
+          <span className="text-[13px] font-bold text-primary-700">{selected.size} מוצרים נבחרו</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={() => exportSelected('json')} className="btn btn-secondary px-3 py-1.5 text-[12px] gap-1.5">💾 ייצא נבחרים (JSON)</button>
+            <button onClick={() => exportSelected('csv')} className="btn btn-secondary px-3 py-1.5 text-[12px] gap-1.5">📊 ייצא נבחרים (CSV)</button>
+            <button onClick={clearSelection} className="text-[12px] font-bold text-slate-500 hover:text-red-500 px-2 py-1.5 transition-colors">נקה בחירה</button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden overflow-x-auto">
         <table className="w-full text-right min-w-[600px]">
           <thead className="bg-slate-50 text-[12px] font-bold text-slate-500 uppercase">
             <tr>
+              <th className="px-4 py-3 w-10"><input type="checkbox" checked={allPageSelected} onChange={toggleSelectPage} className="w-4 h-4 rounded border-slate-300 text-primary-600 cursor-pointer" title="בחר הכל בעמוד" /></th>
               <SortHeader col="name" label="מוצר" />
               <SortHeader col="brand" label="מותג" className="hidden sm:table-cell" />
               <SortHeader col="category" label="קטגוריה" />
@@ -436,10 +515,11 @@ export default function AdminProducts() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {loading ? <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">טוען...</td></tr>
-             : paged.length === 0 ? <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">אין מוצרים</td></tr>
+            {loading ? <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">טוען...</td></tr>
+             : paged.length === 0 ? <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">אין מוצרים</td></tr>
              : paged.map(p => (
-              <tr key={p._id} className="hover:bg-slate-50">
+              <tr key={p._id} className={`hover:bg-slate-50 ${selected.has(p._id) ? 'bg-primary-50/40' : ''}`}>
+                <td className="px-4 py-3"><input type="checkbox" checked={selected.has(p._id)} onChange={() => toggleSelect(p._id)} className="w-4 h-4 rounded border-slate-300 text-primary-600 cursor-pointer" /></td>
                 <td className="px-4 py-3"><div className="flex items-center gap-2">{p.images?.[0] && <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover" />}<div><div className="flex items-center gap-1.5"><p className="font-semibold text-slate-800 text-[14px] line-clamp-1">{p.name}</p><CompletenessBadge product={p} /></div>{p.isKosher && <span className="text-[10px] text-emerald-600 font-bold">✡ כשר</span>}</div></div></td>
                 <td className="px-4 py-3 text-[13px] text-slate-500 hidden sm:table-cell">{p.brand}</td>
                 <td className="px-4 py-3"><span className="text-xs font-bold bg-primary-50 text-primary-600 px-2.5 py-1 rounded-full">{p.category}</span></td>
