@@ -457,12 +457,12 @@ export default function AdminProducts() {
         <h1 className="text-2xl font-black text-slate-900">מוצרים ({products.length})</h1>
         <div className="flex gap-2 flex-wrap">
           {/* Export / Backup */}
-          <button onClick={() => exportProducts('json')} disabled={exporting} className="btn btn-secondary px-3 py-2.5 text-[13px] gap-1.5 disabled:opacity-50" title="גיבוי JSON (ניתן לייבא מחדש)">
+          {/* <button onClick={() => exportProducts('json')} disabled={exporting} className="btn btn-secondary px-3 py-2.5 text-[13px] gap-1.5 disabled:opacity-50" title="גיבוי JSON (ניתן לייבא מחדש)">
             💾 JSON
           </button>
           <button onClick={() => exportProducts('csv')} disabled={exporting} className="btn btn-secondary px-3 py-2.5 text-[13px] gap-1.5 disabled:opacity-50" title="ייצוא CSV (Excel)">
             📊 CSV
-          </button>
+          </button> */}
           <button onClick={() => setModal('new')} className="btn btn-primary px-4 py-2.5"><Plus className="w-4 h-4" />מוצר חדש</button>
         </div>
       </div>

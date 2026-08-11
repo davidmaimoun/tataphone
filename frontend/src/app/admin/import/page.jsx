@@ -5,15 +5,57 @@ import { productAdmin } from '@/services/productService'
 import api from '@/services/api'
 import toast from 'react-hot-toast'
 
+// Extensions et types acceptés par format
+const FORMAT_EXT = { json: '.json', xlsx: '.xlsx / .xls', csv: '.csv', tsv: '.tsv' }
+const FORMAT_ACCEPT = {
+  json: '.json,application/json',
+  xlsx: '.xlsx,.xls',
+  csv:  '.csv,text/csv',
+  tsv:  '.tsv,text/tab-separated-values',
+}
+
+// Parse un texte CSV/TSV en tableau d'objets (1re ligne = en-têtes).
+// Gère les champs entre guillemets et les "" échappés.
+function parseDelimited(text, delimiter) {
+  const rows = []
+  let field = '', row = [], inQuotes = false
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (inQuotes) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i++ }
+      else if (c === '"') inQuotes = false
+      else field += c
+    } else {
+      if (c === '"') inQuotes = true
+      else if (c === delimiter) { row.push(field); field = '' }
+      else if (c === '\n') { row.push(field); rows.push(row); field = ''; row = [] }
+      else if (c === '\r') { /* ignore */ }
+      else field += c
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row) }
+  if (rows.length < 2) return []
+  const headers = rows[0].map(h => h.trim())
+  return rows.slice(1).filter(r => r.some(c => c.trim())).map(r => {
+    const obj = {}
+    headers.forEach((h, i) => { obj[h] = (r[i] ?? '').trim() })
+    // Reconvertir les champs structurés exportés par la sélection batch
+    if (obj.tags != null && typeof obj.tags === 'string') obj.tags = obj.tags ? obj.tags.split('|') : []
+    if (obj.specs != null && typeof obj.specs === 'string') { try { obj.specs = JSON.parse(obj.specs) } catch { obj.specs = {} } }
+    return obj
+  })
+}
+
 export default function AdminImport() {
-  const [tab, setTab] = useState('api')          // 'api' | 'files'
+  const [tab, setTab] = useState('files')        // 'api' | 'files' — défaut 'files' (l'API Priority n'est pas encore branchée)
   const [schema, setSchema] = useState(null)
   const [jsonText, setJsonText] = useState('')
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState(null)
   const [overwriteSku, setOverwriteSku] = useState(false)
   const [guideOpen, setGuideOpen] = useState(false)
-  const [jsonFileName, setJsonFileName] = useState('')
+  const [importFormat, setImportFormat] = useState('json')  // 'json' | 'xlsx' | 'csv' | 'tsv'
+  const [fileName, setFileName] = useState('')
 
   // ── État du tab API (Priority) ──
   const [priorityStatus, setPriorityStatus] = useState(null)
@@ -44,27 +86,52 @@ export default function AdminImport() {
     try { const r = await productAdmin.importJson(products, overwriteSku); setResult(r); toast.success(`יובאו ${r.imported ?? products.length} מוצרים! 🎉`) }
     catch (e) { toast.error(e?.response?.data?.error || 'שגיאה בייבוא') } finally { setBusy(false) }
   }
-  const importExcel = async (file) => {
-    if (!file) return
-    setBusy(true)
-    try { const fd = new FormData(); fd.append('file', file); const r = await productAdmin.importExcel(fd); setResult(r); toast.success(`הקובץ יובא! ${r.imported ? `(${r.imported} מוצרים)` : ''} 🎉`) }
-    catch (e) { toast.error(e?.response?.data?.error || 'שגיאה בייבוא') } finally { setBusy(false) }
-  }
 
-  // Charge un fichier .json depuis le disque dans la zone de texte (relecture avant import)
-  const loadJsonFile = async (file) => {
+  // Route le fichier uploadé selon le format sélectionné.
+  const handleFile = async (file) => {
     if (!file) return
-    setJsonFileName('')
+    setFileName('')
+    setResult(null)
+
+    // JSON → on charge dans la textarea pour relecture avant import
+    if (importFormat === 'json') {
+      try {
+        const text = await file.text()
+        const parsed = JSON.parse(text)
+        if (!Array.isArray(parsed)) return toast.error('הקובץ חייב להכיל מערך של מוצרים')
+        setJsonText(JSON.stringify(parsed, null, 2))
+        setFileName(file.name)
+        toast.success(`נטענו ${parsed.length} מוצרים — בדוק ולחץ על ייבוא`)
+      } catch { toast.error('קובץ JSON לא תקין') }
+      return
+    }
+
+    // Excel (.xlsx) → endpoint backend natif (openpyxl)
+    if (importFormat === 'xlsx') {
+      setFileName(file.name)
+      setBusy(true)
+      try {
+        const fd = new FormData(); fd.append('file', file)
+        const r = await productAdmin.importExcel(fd)
+        setResult(r)
+        toast.success(`הקובץ יובא! ${r.imported ? `(${r.imported} מוצרים)` : ''} 🎉`)
+      } catch (e) { toast.error(e?.response?.data?.error || 'שגיאה בייבוא') } finally { setBusy(false) }
+      return
+    }
+
+    // CSV / TSV → on parse côté client puis on envoie via le endpoint JSON
+    // (qui gère overwriteSku / mise à jour par SKU, contrairement au endpoint Excel).
     try {
       const text = await file.text()
-      const parsed = JSON.parse(text)              // valide le JSON avant de l'afficher
-      if (!Array.isArray(parsed)) return toast.error('הקובץ חייב להכיל מערך של מוצרים')
-      setJsonText(JSON.stringify(parsed, null, 2))
-      setJsonFileName(file.name)
-      toast.success(`נטענו ${parsed.length} מוצרים — בדוק ולחץ על ייבוא`)
-    } catch {
-      toast.error('קובץ JSON לא תקין')
-    }
+      const delimiter = importFormat === 'tsv' ? '\t' : ','
+      const products = parseDelimited(text, delimiter)
+      if (products.length === 0) return toast.error('הקובץ ריק או לא תקין')
+      setFileName(file.name)
+      setBusy(true)
+      const r = await productAdmin.importJson(products, overwriteSku)
+      setResult(r)
+      toast.success(`יובאו ${r.imported ?? products.length} מוצרים! 🎉`)
+    } catch (e) { toast.error(e?.response?.data?.error || 'שגיאה בקריאת הקובץ') } finally { setBusy(false) }
   }
 
   // ── Priority API (placeholder — branché plus tard sur le backend) ──
@@ -237,36 +304,61 @@ export default function AdminImport() {
           )}
 
           <div className="grid grid-cols-1 gap-6">
+            {/* Choix du format d'import */}
             <div className="bg-white rounded-2xl border border-slate-100 p-6">
-              <div className="flex items-center gap-2 mb-3"><FileSpreadsheet className="w-5 h-5 text-emerald-600" /><h2 className="font-bold text-slate-800">ייבוא מ-Excel</h2></div>
-              <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200 rounded-xl p-8 cursor-pointer hover:border-primary-300 transition-colors">
-                <Upload className="w-8 h-8 text-slate-300" /><span className="text-[13px] text-slate-500">לחץ להעלאת קובץ .xlsx</span>
-                <input type="file" accept=".xlsx,.xls" className="hidden" onChange={e => importExcel(e.target.files[0])} disabled={busy} />
-              </label>
-              <p className="text-[11px] text-slate-400 mt-2">השורה הראשונה = שמות העמודות (לפי השדות למעלה)</p>
+              <h2 className="font-bold text-slate-800 mb-3">בחר פורמט ייבוא</h2>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { id: 'json', label: 'JSON', icon: '📋' },
+                  { id: 'xlsx', label: 'Excel', icon: '📊' },
+                  { id: 'csv',  label: 'CSV',  icon: '📄' },
+                  { id: 'tsv',  label: 'TSV',  icon: '📄' },
+                ].map(f => (
+                  <button key={f.id} type="button" onClick={() => setImportFormat(f.id)}
+                    className={`py-3 rounded-xl text-[13px] font-bold border-2 transition-all ${importFormat === f.id ? 'border-primary-400 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-400 hover:border-primary-200'}`}>
+                    <span className="block text-lg mb-0.5">{f.icon}</span>{f.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
+            {/* Comportement si SKU déjà existant */}
             <div className="bg-white rounded-2xl border border-slate-100 p-4">
-              <p className="text-[13px] font-bold text-slate-700 mb-2">אם מק"ט כבר קיים:</p>
+              <p className="text-[13px] font-bold text-slate-700 mb-1">אם מק"ט (SKU) כבר קיים במאגר:</p>
+              <p className="text-[11px] text-slate-400 mb-2">ההתאמה מתבצעת לפי המק"ט (SKU) — לכן חשוב שלכל מוצר יהיה מק"ט ייחודי.</p>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setOverwriteSku(false)} className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border-2 transition-all ${!overwriteSku ? 'border-primary-400 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-400'}`}>➕ צור חדש (דלג אם קיים)</button>
                 <button type="button" onClick={() => setOverwriteSku(true)} className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border-2 transition-all ${overwriteSku ? 'border-primary-400 bg-primary-50 text-primary-700' : 'border-slate-200 text-slate-400'}`}>🔄 עדכן מוצר קיים</button>
               </div>
             </div>
 
+            {/* Zone d'import selon le format choisi */}
             <div className="bg-white rounded-2xl border border-slate-100 p-6">
-              <div className="flex items-center gap-2 mb-3"><FileJson className="w-5 h-5 text-primary-600" /><h2 className="font-bold text-slate-800">ייבוא מ-JSON</h2></div>
-              {/* Upload d'un fichier .json (alternative au copier-coller) */}
+              <div className="flex items-center gap-2 mb-3">
+                {importFormat === 'json' ? <FileJson className="w-5 h-5 text-primary-600" /> : <FileSpreadsheet className="w-5 h-5 text-emerald-600" />}
+                <h2 className="font-bold text-slate-800">ייבוא מקובץ {importFormat.toUpperCase()}</h2>
+              </div>
+
+              {/* Upload fichier (tous formats) */}
               <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200 rounded-xl p-6 cursor-pointer hover:border-primary-300 transition-colors mb-3">
                 <Upload className="w-7 h-7 text-slate-300" />
-                <span className="text-[13px] text-slate-500">לחץ להעלאת קובץ .json</span>
-                {jsonFileName && <span className="text-[12px] font-bold text-primary-600 flex items-center gap-1"><Check className="w-3.5 h-3.5" />{jsonFileName}</span>}
-                <input type="file" accept=".json,application/json" className="hidden" onChange={e => loadJsonFile(e.target.files[0])} disabled={busy} />
+                <span className="text-[13px] text-slate-500">לחץ להעלאת קובץ {FORMAT_EXT[importFormat]}</span>
+                {fileName && <span className="text-[12px] font-bold text-primary-600 flex items-center gap-1"><Check className="w-3.5 h-3.5" />{fileName}</span>}
+                <input type="file" accept={FORMAT_ACCEPT[importFormat]} className="hidden" onChange={e => handleFile(e.target.files[0])} disabled={busy} />
               </label>
 
-              <p className="text-[11px] text-slate-400 mb-2">או הדבק את ה-JSON ישירות:</p>
-              <textarea value={jsonText} onChange={e => { setJsonText(e.target.value); setJsonFileName('') }} rows={8} dir="ltr" placeholder={schema ? buildExample() : '[{"name":"...","price":100}]'} className="input font-mono text-[12px] resize-none w-full mb-3" />
-              <button onClick={importJson} disabled={busy || !jsonText.trim()} className="btn btn-primary px-6 py-2.5">{busy ? 'מייבא...' : 'ייבא JSON'}</button>
+              {/* Copy-paste : uniquement pour JSON */}
+              {importFormat === 'json' && (
+                <>
+                  <p className="text-[11px] text-slate-400 mb-2">או הדבק את ה-JSON ישירות:</p>
+                  <textarea value={jsonText} onChange={e => { setJsonText(e.target.value); setFileName('') }} rows={8} dir="ltr" placeholder={schema ? buildExample() : '[{"name":"...","price":100}]'} className="input font-mono text-[12px] resize-none w-full mb-3" />
+                  <button onClick={importJson} disabled={busy || !jsonText.trim()} className="btn btn-primary px-6 py-2.5">{busy ? 'מייבא...' : 'ייבא JSON'}</button>
+                </>
+              )}
+
+              {importFormat !== 'json' && (
+                <p className="text-[11px] text-slate-400">השורה הראשונה = שמות העמודות (לפי השדות למעלה)</p>
+              )}
             </div>
 
             {result && (
