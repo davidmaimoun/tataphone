@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Plus, Pencil, Trash2, Search, X, Check, Star, Upload, Layers, Building2, Tag, Zap, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, X, Check, Star, Upload, Layers, Building2, Tag, Zap, ChevronDown, ChevronUp, RefreshCw, AlertCircle, AlertTriangle } from 'lucide-react'
 import metaService from '@/services/metaService'
 import { productAdmin } from '@/services/productService'
 import productService from '@/services/productService'
@@ -10,6 +10,52 @@ import toast from 'react-hot-toast'
 // Couleurs suggérées pour le VariantsEditor (clic rapide au lieu de tout taper)
 const SUGGESTED_COLORS = ['שחור','לבן','כסף','אפור','זהב','ורוד','אדום','כחול','ירוק','סגול','כתום','טיטניום','שמפניה','זהב ורוד']
 const SUGGESTED_STORAGE = ['64GB','128GB','256GB','512GB','1TB']
+
+// ── Complétude produit : détecte les champs manquants (2 niveaux de gravité) ──
+// CRITIQUE (rouge) : champs essentiels au bon fonctionnement de la fiche.
+// MINEUR (ambre) : champs qui améliorent la fiche mais ne la cassent pas.
+function getProductIssues(p) {
+  const critical = []
+  const minor = []
+  const hasVariants = Array.isArray(p.variants) && p.variants.some(v => v.price != null && v.price !== '')
+
+  if (!p.images?.length)                          critical.push('תמונה')
+  if (!hasVariants && !(p.price > 0))             critical.push('מחיר')
+  if (!p.category?.trim())                         critical.push('קטגוריה')
+  if (!p.brand?.trim())                            critical.push('מותג')
+  if (!p.sku?.trim())                              critical.push('מק"ט (SKU)')
+
+  if (!p.description?.trim())                      minor.push('תיאור')
+  if (!p.tags?.length)                             minor.push('תגיות')
+  if (!p.specs || Object.keys(p.specs).length === 0) minor.push('מפרט')
+
+  return { critical, minor }
+}
+
+// ── Badge d'alerte dans la row (rouge = critique, ambre = mineur) + tooltip ──
+function CompletenessBadge({ product }) {
+  const { critical, minor } = getProductIssues(product)
+  if (critical.length === 0 && minor.length === 0) return null
+
+  const isCritical = critical.length > 0
+  const Icon = isCritical ? AlertCircle : AlertTriangle
+  const missing = [...critical, ...minor]
+  const tooltip = `${isCritical ? 'חסרים שדות חובה' : 'ניתן להשלים'}: ${missing.join(', ')}`
+
+  return (
+    <span className="relative inline-flex items-center group/badge">
+      <Icon className={`w-4 h-4 ${isCritical ? 'text-red-500' : 'text-amber-400'}`} strokeWidth={isCritical ? 2.5 : 2} />
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute z-30 bottom-full right-1/2 translate-x-1/2 mb-1.5 whitespace-nowrap rounded-lg bg-slate-800 text-white text-[11px] font-medium px-2.5 py-1.5 opacity-0 group-hover/badge:opacity-100 transition-opacity shadow-lg"
+        dir="rtl"
+      >
+        {tooltip}
+        <span className="absolute top-full right-1/2 translate-x-1/2 -mt-px border-4 border-transparent border-t-slate-800" />
+      </span>
+    </span>
+  )
+}
 
 // ── Meta manager (add/remove categories, brands, tags) ──
 function MetaManager({ collection, label, icon: Icon, color }) {
@@ -394,7 +440,7 @@ export default function AdminProducts() {
              : paged.length === 0 ? <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">אין מוצרים</td></tr>
              : paged.map(p => (
               <tr key={p._id} className="hover:bg-slate-50">
-                <td className="px-4 py-3"><div className="flex items-center gap-2">{p.images?.[0] && <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover" />}<div><p className="font-semibold text-slate-800 text-[14px] line-clamp-1">{p.name}</p>{p.isKosher && <span className="text-[10px] text-emerald-600 font-bold">✡ כשר</span>}</div></div></td>
+                <td className="px-4 py-3"><div className="flex items-center gap-2">{p.images?.[0] && <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover" />}<div><div className="flex items-center gap-1.5"><p className="font-semibold text-slate-800 text-[14px] line-clamp-1">{p.name}</p><CompletenessBadge product={p} /></div>{p.isKosher && <span className="text-[10px] text-emerald-600 font-bold">✡ כשר</span>}</div></div></td>
                 <td className="px-4 py-3 text-[13px] text-slate-500 hidden sm:table-cell">{p.brand}</td>
                 <td className="px-4 py-3"><span className="text-xs font-bold bg-primary-50 text-primary-600 px-2.5 py-1 rounded-full">{p.category}</span></td>
                 <td className="px-4 py-3 font-bold text-[14px]">₪{p.price?.toLocaleString()}</td>
@@ -567,14 +613,14 @@ function ProductModal({ product, onClose, onSave }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 sm:col-span-1"><label className="block text-xs font-bold text-slate-500 mb-1.5">שם המוצר *</label><input value={form.name} onChange={set('name')} required dir="rtl" className="input text-sm" placeholder="iPhone 15 Pro" /></div>
-            <div><label className="block text-xs font-bold text-slate-500 mb-1.5">SKU</label><input value={form.sku || ''} onChange={set('sku')} dir="rtl" className="input text-sm" placeholder="APL-15PM" /></div>
+            <div><label className="block text-xs font-bold text-slate-500 mb-1.5">SKU</label><input value={form.sku || ''} onChange={set('sku')} dir="rtl" className={`input text-sm ${!form.sku?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`} placeholder="APL-15PM" /></div>
           </div>
 
           {/* Brand */}
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-1.5">מותג *</label>
             {!showNewBrand ? (
-              <div className="flex gap-2"><select value={form.brand} onChange={set('brand')} required className="input text-sm flex-1"><option value="">בחר מותג...</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select><button type="button" onClick={() => setShowNewBrand(true)} className="btn btn-ghost text-xs px-3 py-2">+ חדש</button></div>
+              <div className="flex gap-2"><select value={form.brand} onChange={set('brand')} required className={`input text-sm flex-1 ${!form.brand?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`}><option value="">בחר מותג...</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select><button type="button" onClick={() => setShowNewBrand(true)} className="btn btn-ghost text-xs px-3 py-2">+ חדש</button></div>
             ) : (
               <div className="flex gap-2"><input value={newBrand} onChange={e => setNewBrand(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="שם המותג..." autoFocus /><button type="button" onClick={addBrand} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewBrand(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
             )}
@@ -585,7 +631,7 @@ function ProductModal({ product, onClose, onSave }) {
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1.5">קטגוריה *</label>
               {!showNewCat ? (
-                <div className="flex gap-2"><select value={form.category} onChange={set('category')} required className="input text-sm flex-1"><option value="">בחר...</option>{metaCategories.map(c => <option key={c} value={c}>{c}</option>)}</select><button type="button" onClick={() => setShowNewCat(true)} className="btn btn-ghost text-xs px-2 py-2">+</button></div>
+                <div className="flex gap-2"><select value={form.category} onChange={set('category')} required className={`input text-sm flex-1 ${!form.category?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`}><option value="">בחר...</option>{metaCategories.map(c => <option key={c} value={c}>{c}</option>)}</select><button type="button" onClick={() => setShowNewCat(true)} className="btn btn-ghost text-xs px-2 py-2">+</button></div>
               ) : (
                 <div className="flex gap-2"><input value={newCat} onChange={e => setNewCat(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="קטגוריה חדשה..." autoFocus /><button type="button" onClick={addCat} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewCat(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
               )}
@@ -594,10 +640,24 @@ function ProductModal({ product, onClose, onSave }) {
           </div>
 
           {/* Prices */}
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר (₪) *</label><input type="number" min="0" step="0.01" value={form.price || ''} onChange={set('price')} required className="input text-sm" /></div>
-            <div><label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר מקורי</label><input type="number" min="0" step="0.01" value={form.originalPrice || ''} onChange={set('originalPrice')} className="input text-sm" placeholder="אופציונלי" /></div>
-          </div>
+          {(() => {
+            const hasVariants = variants.some(v => v.price !== '' && v.price != null)
+            return (
+              <div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר (₪) {!hasVariants && '*'}</label>
+                    <input type="number" min="0" step="0.01" value={hasVariants ? '' : (form.price || '')} onChange={set('price')} required={!hasVariants} disabled={hasVariants} className={`input text-sm ${hasVariants ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`} placeholder={hasVariants ? 'מנוהל לפי וריאציות' : ''} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר מקורי</label>
+                    <input type="number" min="0" step="0.01" value={hasVariants ? '' : (form.originalPrice || '')} onChange={set('originalPrice')} disabled={hasVariants} className={`input text-sm ${hasVariants ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`} placeholder={hasVariants ? 'מנוהל לפי וריאציות' : 'אופציונלי'} />
+                  </div>
+                </div>
+                {hasVariants && <p className="text-[11px] text-amber-600 mt-1.5">💡 המחיר מנוהל לפי הוריאציות למטה. ערוך את המחיר בטבלת הוריאציות.</p>}
+              </div>
+            )
+          })()}
 
           {/* Prix fournisseur */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
@@ -606,7 +666,7 @@ function ProductModal({ product, onClose, onSave }) {
           </div>
 
           {/* Description */}
-          <div><label className="block text-xs font-bold text-slate-500 mb-1.5">תיאור</label><textarea value={form.description || ''} onChange={set('description')} rows={3} dir="rtl" className="input resize-none text-sm" placeholder="תיאור המוצר..." /></div>
+          <div><label className="block text-xs font-bold text-slate-500 mb-1.5">תיאור</label><textarea value={form.description || ''} onChange={set('description')} rows={3} dir="rtl" className={`input resize-none text-sm ${!form.description?.trim() ? 'ring-1 ring-amber-200 border-amber-200 bg-amber-50/30' : ''}`} placeholder="תיאור המוצר..." /></div>
 
           {/* Kosher */}
           <div>
