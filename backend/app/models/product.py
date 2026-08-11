@@ -313,6 +313,22 @@ def update_product(product_id: str, data: dict) -> dict:
         try: data['salesCount'] = int(data['salesCount'] or 0)
         except (ValueError, TypeError): data['salesCount'] = 0
 
+    # Prix : forcer en nombre (le formulaire multipart envoie des strings → sinon le prix
+    # est sauvegarde comme "150" et l'affichage / les calculs se cassent).
+    if 'price' in data:
+        try: data['price'] = float(data['price'] or 0)
+        except (ValueError, TypeError): data['price'] = 0.0
+    if 'originalPrice' in data:
+        try:
+            data['originalPrice'] = float(data['originalPrice']) if data['originalPrice'] not in (None,'','None','0') else None
+        except (ValueError, TypeError): data['originalPrice'] = None
+
+    # Flags booleens : normaliser depuis les strings du formulaire ("true"/"false"/"on"...).
+    # Sans ca, la string "false" est truthy en Python → le produit passe en vedette tout seul.
+    for bflag in ('isFeatured', 'isNew', 'isAccessory', 'isKosher'):
+        if bflag in data:
+            data[bflag] = _to_bool(data[bflag], False)
+
     # Recompute discount (cas sans variantes)
     try:
         price = float(data.get('price', 0) or 0)
@@ -432,5 +448,3 @@ def _serialize_variants(variants: list, admin: bool) -> list:
             item['supplierPrice'] = v.get('supplierPrice')
         out.append(item)
     return out
-
-
