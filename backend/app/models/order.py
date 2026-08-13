@@ -26,9 +26,24 @@ def create_indexes():
 VALID_STATUSES = ['ממתין', 'אושר', 'נשלח', 'הושלם', 'בוטל']
 
 
+def _next_order_number() -> int:
+    """Numero de commande sequentiel (#1001, #1002...), atomique via la collection 'counters'.
+    Jamais de doublon meme si deux commandes arrivent en meme temps.
+    Demarre a 1001 pour un rendu pro."""
+    from pymongo import ReturnDocument
+    counter = get_db()['counters'].find_one_and_update(
+        {'_id': 'orderNumber'},
+        {'$inc': {'seq': 1}},
+        upsert=True,
+        return_document=ReturnDocument.AFTER,
+    )
+    return 1000 + int(counter.get('seq', 1))
+
+
 def create_order(data: dict) -> dict:
     now = datetime.utcnow()
     doc = {
+        'orderNumber':    _next_order_number(),
         'customer': {
             'firstName': data['customer'].get('firstName', ''),
             'lastName':  data['customer'].get('lastName', ''),
@@ -65,16 +80,29 @@ def create_order(data: dict) -> dict:
 
 def get_all(params: dict = {}):
     col   = get_collection()
-    query = {}
+    query = {'deleted': {'$ne': True}}   # exclut les commandes archivees (soft-delete)
     if params.get('status'):
         query['status'] = params['status']
     page  = max(1, int(params.get('page', 1)))
-    limit = min(100, int(params.get('limit', 50)))
+    limit = min(1000, int(params.get('limit', 500)))   # admin : jusqu'a 1000 commandes
     skip  = (page - 1) * limit
     cursor = col.find(query).sort('createdAt', -1).skip(skip).limit(limit)
     orders = [serialize(o) for o in cursor]
     total  = col.count_documents(query)
     return {'orders': orders, 'total': total}
+
+
+def soft_delete(order_id: str) -> bool:
+    """Suppression douce : la commande est archivee (deleted=True) mais reste en base.
+    Recuperable, et n'altere pas les stats comptables passees."""
+    try:
+        res = get_collection().update_one(
+            {'_id': ObjectId(order_id)},
+            {'$set': {'deleted': True, 'deletedAt': datetime.utcnow()}}
+        )
+        return res.modified_count > 0
+    except Exception:
+        return False
 
 
 def get_by_id(order_id: str):
@@ -147,6 +175,7 @@ def serialize(o: dict) -> dict:
         return {}
     return {
         '_id':           str(o['_id']),
+        'orderNumber':   o.get('orderNumber'),
         'customer':      o.get('customer', {}),
         'items':         o.get('items', []),
         'subtotal':      o.get('subtotal', o.get('total', 0)),

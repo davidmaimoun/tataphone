@@ -12,7 +12,7 @@ export default function ContactForm() {
   const submit = async (e) => {
     e.preventDefault(); setLoading(true)
     try {
-      await api.post('/contact', form)
+      await api.post('/contact/', form)
       toast.success('הודעתך נשלחה! נחזור אליך בהקדם 🙏')
       setForm({ name:'', email:'', phone:'', message:'' })
     } catch { toast.error('שגיאה בשליחה, נסה שנית') }

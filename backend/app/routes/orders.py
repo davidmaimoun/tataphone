@@ -193,6 +193,18 @@ def get_order(order_id):
     return jsonify(order)
 
 
+@orders_bp.route('/<order_id>', methods=['DELETE'])
+@jwt_required()
+def delete_order(order_id):
+    """Suppression douce d'une commande (archivage). Admin uniquement."""
+    if not _is_admin():
+        return jsonify({'error': 'Admin only'}), 403
+    ok = OrderModel.soft_delete(order_id)
+    if not ok:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'deleted': True})
+
+
 @orders_bp.route('/<order_id>/status', methods=['PUT'])
 @jwt_required()
 def update_status(order_id):

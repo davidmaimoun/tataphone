@@ -80,6 +80,20 @@ def get_messages():
     return jsonify({'messages': msgs})
 
 
+@contact_bp.route('/messages/<msg_id>', methods=['DELETE'])
+def delete_message(msg_id):
+    from flask_jwt_extended import get_jwt, verify_jwt_in_request
+    from bson import ObjectId
+    try:
+        verify_jwt_in_request()
+        if get_jwt().get('role') != 'admin':
+            return jsonify({'error': 'Admin only'}), 403
+    except Exception:
+        return jsonify({'error': 'Unauthorized'}), 401
+    get_db()['contact_messages'].delete_one({'_id': ObjectId(msg_id)})
+    return jsonify({'ok': True})
+
+
 @contact_bp.route('/messages/<msg_id>/read', methods=['PUT'])
 def mark_read(msg_id):
     from flask_jwt_extended import jwt_required, get_jwt, verify_jwt_in_request
@@ -90,10 +104,13 @@ def mark_read(msg_id):
             return jsonify({'error': 'Admin only'}), 403
     except Exception:
         return jsonify({'error': 'Unauthorized'}), 401
+    # Accepte { "read": true/false } pour basculer lu/non-lu (defaut : true)
+    body = request.get_json(silent=True) or {}
+    read_val = body.get('read', True)
     get_db()['contact_messages'].update_one(
-        {'_id': ObjectId(msg_id)}, {'$set': {'read': True}}
+        {'_id': ObjectId(msg_id)}, {'$set': {'read': bool(read_val)}}
     )
-    return jsonify({'ok': True})
+    return jsonify({'ok': True, 'read': bool(read_val)})
 
 
 @contact_bp.route('/messages/<msg_id>/handle', methods=['PUT'])

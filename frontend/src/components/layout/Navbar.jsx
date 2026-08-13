@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, Heart, User, LogOut, Package, ChevronDown, Menu, X, Flame } from 'lucide-react'
+import { ShoppingCart, Heart, User, LogOut, Package, ChevronDown, Menu, X, Flame, MessageCircle } from 'lucide-react'
 import useCartStore from '@/stores/cartStore'
 import useAuthStore from '@/stores/authStore'
 import useWishlistStore from '@/stores/wishlistStore'
@@ -64,14 +64,20 @@ export default function Navbar() {
             <MobileSearch />
           </div>
 
-          {/* Liens rapides desktop uniquement (kosher + מבצעים) */}
+          {/* Liens rapides desktop (produits + kosher + מבצעים + contact) */}
           <nav className="hidden lg:flex items-center gap-2 flex-shrink-0 text-[14px] font-semibold text-slate-600">
+            <Link href="/products" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl font-bold transition-all hover:bg-slate-100 whitespace-nowrap text-slate-700">
+              <Package className="w-4 h-4" />כל המוצרים
+            </Link>
             <Link href="/products?isKosher=true" className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-bold transition-all hover:opacity-90 whitespace-nowrap" style={{ background:'#D1FAE5', color:'#064E3B', border:'1px solid #6EE7B7' }}>
               <span style={{ fontSize:14 }}>✡</span>כשר
             </Link>
             <Link href="/products?sale=true" className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-white text-[14px] transition-all hover:scale-105 whitespace-nowrap"
               style={{ background:'linear-gradient(135deg,#EF4444,#DC2626)', boxShadow:'0 2px 10px rgba(239,68,68,0.4)' }}>
               <Flame className="w-3.5 h-3.5 fill-white" /><span>מבצעים</span>
+            </Link>
+            <Link href="/contact" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl font-bold transition-all hover:bg-slate-100 whitespace-nowrap text-slate-700">
+              <MessageCircle className="w-4 h-4" />צור קשר
             </Link>
           </nav>
 

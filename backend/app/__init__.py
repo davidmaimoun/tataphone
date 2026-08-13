@@ -10,6 +10,9 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
+    # Evite les redirections 308 quand le slash final manque (/contact vs /contact/),
+    # qui cassent les requetes preflight CORS (le navigateur refuse de suivre un redirect en OPTIONS).
+    app.url_map.strict_slashes = False
 
     # ── Config ────────────────────────────────────────
     app.config['JWT_SECRET_KEY']           = os.getenv('JWT_SECRET', 'dev-secret')
