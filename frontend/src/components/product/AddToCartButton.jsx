@@ -41,10 +41,12 @@ export default function AddToCartButton({ product }) {
 
   return (
     <button onClick={handleAdd}
+      onMouseEnter={e => { if (!added) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(157,75,46,0.5)' } }}
+      onMouseLeave={e => { if (!added) { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(157,75,46,0.4)' } }}
       className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold text-[12px] text-white transition-all duration-200 mt-1.5"
       style={{
-        background: added ? 'linear-gradient(135deg,#059669,#10B981)' : 'linear-gradient(135deg,var(--primary),var(--primary-dark))',
-        boxShadow: added ? '0 2px 8px rgba(16,185,129,0.3)' : '0 2px 8px var(--primary-shadow)',
+        background: added ? 'linear-gradient(135deg,#059669,#10B981)' : 'linear-gradient(135deg,var(--primary),var(--primary-deep))',
+        boxShadow: added ? '0 4px 14px rgba(16,185,129,0.4)' : '0 4px 14px rgba(157,75,46,0.4)',
       }}>
       <AnimatePresence mode="wait" initial={false}>
         {added
