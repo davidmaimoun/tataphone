@@ -63,7 +63,7 @@ export default function HeroBanner() {
       <div className="absolute pointer-events-none transition-all duration-700" style={{ width:600, height:600, top:-180, right:-120, borderRadius:'50%', background:`radial-gradient(circle, ${s.accent}20 0%, transparent 65%)` }} />
 
       <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-8 py-12 lg:py-20">
-        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-14">
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-14 lg:min-h-[420px]">
           {/* Text */}
           <div className="flex-1 text-right w-full lg:max-w-lg z-10">
             <AnimatePresence mode="wait">
@@ -76,7 +76,7 @@ export default function HeroBanner() {
                   <span style={{ WebkitTextFillColor:'transparent', WebkitBackgroundClip:'text', backgroundClip:'text', backgroundImage:`linear-gradient(135deg,${s.accent},${s.accent}88)` }}>{s.highlight}</span>
                   {s.end}
                 </h1>
-                <p className="text-base lg:text-lg text-slate-500 mb-6 leading-7">{s.sub}</p>
+                <p className="text-base lg:text-lg text-slate-500 mb-6 leading-7 lg:min-h-[56px]">{s.sub}</p>
                 <div className="flex gap-3 flex-wrap">
                   <Link href={s.ctaTo}>
                     <button className="btn btn-primary text-[14px] lg:text-[15px] px-6 py-3 rounded-xl gap-2 text-white"
