@@ -262,7 +262,7 @@ def create_product(data: dict) -> dict:
         'stock':         int(data.get('stock', 0) or 0),
         'rating':        float(data.get('rating', 0) or 0),
         'reviewCount':   int(data.get('reviewCount', 0) or 0),
-        'isNew':         data.get('isNew', True),
+        'isNew':         data.get('isNew', False),
         'isTopRated':    data.get('isTopRated', False),
         'isKosher':      _to_bool(data.get('isKosher', data.get('is_kosher', data.get('kosher', False))), False),
         'isAccessory':   _to_bool(data.get('isAccessory', data.get('is_accessory', False)), False),
@@ -392,6 +392,17 @@ def serialize(p: dict, admin: bool = False) -> dict:
     if not p:
         return {}
     variants = p.get('variants', []) or []
+
+    # "Nouveau" automatique : produit cree il y a moins de NEW_DAYS jours.
+    # Le badge disparait tout seul apres, sans intervention manuelle.
+    # Un override manuel (isNew=True enregistre explicitement) force aussi le badge.
+    NEW_DAYS = 30
+    is_new_auto = False
+    created = p.get('createdAt')
+    if isinstance(created, datetime):
+        is_new_auto = (datetime.utcnow() - created).days < NEW_DAYS
+    is_new = bool(p.get('isNew')) or is_new_auto
+
     out = {
         '_id':           str(p['_id']),
         'name':          p.get('name'),
@@ -410,7 +421,7 @@ def serialize(p: dict, admin: bool = False) -> dict:
         'stock':         p.get('stock', 0),
         'rating':        p.get('rating', 0),
         'reviewCount':   p.get('reviewCount', 0),
-        'isNew':         p.get('isNew', False),
+        'isNew':         is_new,
         'isTopRated':    p.get('isTopRated', False),
         'salesCount':    p.get('salesCount', 0),
         'isFeatured':    p.get('isFeatured', False),

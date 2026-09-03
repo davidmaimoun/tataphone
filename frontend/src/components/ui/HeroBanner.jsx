@@ -58,7 +58,22 @@ export default function HeroBanner() {
   const s = SLIDES[cur]
 
   return (
-    <section className={`relative overflow-hidden bg-gradient-to-br ${s.bg} transition-all duration-700`}>
+    <section className="hero-animated-bg relative overflow-hidden transition-all duration-700">
+      <style>{`
+        .hero-animated-bg {
+          background: linear-gradient(90deg, #FDF9F6, #F4DFD0, #F6E6D5, #FDFAF7, #F4DFD0);
+          background-size: 300% 100%;
+          animation: heroGradientDrift 14s ease-in-out infinite;
+        }
+        @keyframes heroGradientDrift {
+          0%, 100% { background-position: 0% 50%; }
+          50%      { background-position: 100% 50%; }
+        }
+        /* Respecte le confort visuel : pas d'animation si l'utilisateur l'a désactivée */
+        @media (prefers-reduced-motion: reduce) {
+          .hero-animated-bg { animation: none; }
+        }
+      `}</style>
       <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage:'linear-gradient(#000 1px,transparent 1px),linear-gradient(90deg,#000 1px,transparent 1px)', backgroundSize:'52px 52px' }} />
       <div className="absolute pointer-events-none transition-all duration-700" style={{ width:600, height:600, top:-180, right:-120, borderRadius:'50%', background:`radial-gradient(circle, ${s.accent}20 0%, transparent 65%)` }} />
 
