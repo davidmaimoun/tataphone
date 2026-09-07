@@ -37,9 +37,11 @@ export default function CartPage() {
 
   return (
     <main className="min-h-screen max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6">עגלת קניות ({items.length})</h1>
-
-      <LastMinuteSection compact />
+      {/* Titre panier mis en valeur */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-1.5 h-9 rounded-full" style={{ background:'linear-gradient(180deg,#E8A882,#CC785C,#9D4B2E)' }} />
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">עגלת קניות <span className="text-primary-600">({items.length})</span></h1>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-3">
@@ -93,6 +95,11 @@ export default function CartPage() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Séparateur + accessoires de dernière minute (après le panier) */}
+      <div className="mt-10">
+        <LastMinuteSection compact />
       </div>
     </main>
   )

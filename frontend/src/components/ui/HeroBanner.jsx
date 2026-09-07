@@ -61,9 +61,9 @@ export default function HeroBanner() {
     <section className="hero-animated-bg relative overflow-hidden transition-all duration-700">
       <style>{`
         .hero-animated-bg {
-          background: linear-gradient(90deg, #FDF9F6, #F4DFD0, #F6E6D5, #FDFAF7, #F4DFD0);
+          background: linear-gradient(90deg, #F1DBC9, #D0925B, #D6A06E, #F1E0D0, #D0925B);
           background-size: 300% 100%;
-          animation: heroGradientDrift 14s ease-in-out infinite;
+          animation: heroGradientDrift 7s ease-in-out infinite;
         }
         @keyframes heroGradientDrift {
           0%, 100% { background-position: 0% 50%; }
