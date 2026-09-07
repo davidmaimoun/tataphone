@@ -80,13 +80,13 @@ export default function ReviewSection({ productId }) {
   }
 
   return (
-    <div className="mt-4 pt-8 border-t-2 border-slate-100">
+    <div className="mt-4 rounded-3xl p-6 sm:p-8" style={{ background:'radial-gradient(ellipse 80% 100% at 100% 0%, rgba(204,120,92,0.06), transparent 70%)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-1 h-8 rounded-full bg-primary-600" />
+          <div className="w-[5px] h-11 rounded-full" style={{ background:'linear-gradient(180deg,#E8A882,#CC785C,#9D4B2E)' }} />
           <div>
             <h2 className="font-black text-2xl text-slate-900">ביקורות לקוחות</h2>
-            {reviews.length > 0 && <p className="text-[12px] text-slate-400 mt-0.5">{reviews.length} ביקורות · ממוצע {avg.toFixed(1)} מתוך 5</p>}
+            <p className="text-[12px] text-slate-400 mt-0.5">{reviews.length > 0 ? `${reviews.length} ביקורות · ממוצע ${avg.toFixed(1)} מתוך 5` : 'מה הלקוחות אומרים'}</p>
           </div>
         </div>
         {user ? (

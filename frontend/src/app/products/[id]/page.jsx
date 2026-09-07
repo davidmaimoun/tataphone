@@ -86,9 +86,22 @@ export default async function ProductPage({ params }) {
       <ProductDetailClient product={product} />
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <ProductDetailTabs details={product.details} specs={product.specs} />
+        <SectionDivider />
         <ReviewSection productId={product._id} />
+        <SectionDivider />
         <RelatedProducts productId={product._id} />
       </div>
     </>
+  )
+}
+
+// Séparateur décoratif entre les grandes sections (trait dégradé + point terracotta)
+function SectionDivider() {
+  return (
+    <div className="flex items-center gap-3 my-8" aria-hidden="true">
+      <span className="flex-1 h-px" style={{ background:'linear-gradient(90deg, transparent, rgba(204,120,92,0.3))' }} />
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background:'#CC785C' }} />
+      <span className="flex-1 h-px" style={{ background:'linear-gradient(90deg, rgba(204,120,92,0.3), transparent)' }} />
+    </div>
   )
 }
