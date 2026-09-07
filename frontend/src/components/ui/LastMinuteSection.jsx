@@ -78,25 +78,27 @@ export default function LastMinuteSection({ compact = false }) {
   return (
     <section className={compact ? "mt-5 mb-2" : "py-10"}>
       <div className={compact ? "" : "max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8"}>
-        <div className="rounded-3xl p-5 sm:p-7" style={{ background:'linear-gradient(135deg,var(--primary-pale) 0%,#F0FDF4 100%)', border:'1px solid var(--primary-border)', boxShadow:'0 4px 24px var(--primary-glow)' }}>
-          <div className="flex items-center justify-between mb-5">
+        <div className="rounded-3xl p-5 sm:p-7 relative overflow-hidden" style={{ background:'linear-gradient(135deg, #B85C38 0%, #9D4B2E 45%, #7A3820 100%)', boxShadow:'0 10px 40px rgba(157,75,46,0.35)' }}>
+          {/* Halo lumineux décoratif pour la profondeur */}
+          <div className="absolute pointer-events-none" style={{ width:320, height:320, top:-140, left:-80, borderRadius:'50%', background:'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)' }} />
+          <div className="flex items-center justify-between mb-5 relative">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:'linear-gradient(135deg,#F59E0B,#D97706)',boxShadow:'0 4px 12px rgba(245,158,11,0.35)'}}><Zap className="w-5 h-5 text-white fill-white" /></div>
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:'rgba(255,255,255,0.18)', backdropFilter:'blur(6px)', border:'1px solid rgba(255,255,255,0.25)'}}><Zap className="w-5 h-5 text-white fill-white" /></div>
               <div>
-                <h2 className="font-black text-slate-900 text-lg leading-none">ברגע האחרון</h2>
-                <p className="text-[11px] text-slate-500 mt-0.5">{cartItems.length > 0 ? 'אביזרים שמתאימים לסל שלך ✨' : 'אביזרים עד ₪200'}</p>
+                <h2 className="font-black text-white text-lg leading-none">ברגע האחרון</h2>
+                <p className="text-[11px] mt-0.5" style={{ color:'rgba(255,255,255,0.75)' }}>{cartItems.length > 0 ? 'אביזרים שמתאימים לסל שלך ✨' : 'אביזרים עד ₪200'}</p>
               </div>
             </div>
-            <Link href="/products?isAccessory=true"><button className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-bold text-primary-600 bg-white border border-primary-200 hover:bg-primary-50 transition-colors">הכל <ArrowLeft className="w-3 h-3" /></button></Link>
+            <Link href="/products?isAccessory=true"><button className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-bold text-white transition-all hover:bg-white/25" style={{ background:'rgba(255,255,255,0.15)', backdropFilter:'blur(6px)', border:'1px solid rgba(255,255,255,0.2)' }}>הכל <ArrowLeft className="w-3 h-3" /></button></Link>
           </div>
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">{Array.from({length:6}).map((_,i) => <div key={i} className="bg-white/60 rounded-xl animate-pulse" style={{height:90}} />)}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 relative">{Array.from({length:6}).map((_,i) => <div key={i} className="bg-white/20 rounded-xl animate-pulse" style={{height:90}} />)}</div>
           ) : (
-            <>
+            <div className="relative">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-h-[60vw] sm:max-h-none overflow-y-auto sm:overflow-visible pr-1 sm:pr-0">{visible.map((p,i) => <MiniCard key={p._id} product={p} index={i} />)}</div>
               {hidden.length > 0 && showMore && <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">{hidden.map((p,i) => <MiniCard key={p._id} product={p} index={i} />)}</div>}
-              {hidden.length > 0 && <div className="text-center mt-4"><button onClick={() => setShowMore(v => !v)} className="flex items-center gap-2 mx-auto px-5 py-2 rounded-xl text-[12px] font-bold text-slate-600 bg-white border border-slate-200 hover:border-primary-300 hover:text-primary-600 transition-all">{showMore ? 'הסתר ↑' : `עוד ${hidden.length} אביזרים ↓`}</button></div>}
-            </>
+              {hidden.length > 0 && <div className="text-center mt-4"><button onClick={() => setShowMore(v => !v)} className="flex items-center gap-2 mx-auto px-5 py-2 rounded-xl text-[12px] font-bold text-white transition-all hover:bg-white/25" style={{ background:'rgba(255,255,255,0.15)', border:'1px solid rgba(255,255,255,0.2)' }}>{showMore ? 'הסתר ↑' : `עוד ${hidden.length} אביזרים ↓`}</button></div>}
+            </div>
           )}
         </div>
       </div>
