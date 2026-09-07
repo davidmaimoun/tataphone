@@ -224,22 +224,6 @@ export default function ProductDetailClient({ product }) {
               </div>
             )}
 
-            {/* Sections détaillées (מקטעים : תיאור, אחריות, משלוח...) — n'affiche que celles remplies */}
-            {Array.isArray(details) && details.filter(s => s?.body?.trim()).length > 0 && (
-              <div className="mt-8 space-y-3">
-                {details.filter(s => s?.body?.trim()).map((sec, i) => (
-                  <div key={i} className="border border-slate-100 rounded-2xl overflow-hidden">
-                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
-                      <h3 className="text-[15px] font-bold text-slate-800">{sec.title}</h3>
-                    </div>
-                    <div className="px-5 py-4">
-                      <p className="text-[14px] text-slate-600 leading-7 whitespace-pre-wrap">{sec.body}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
           </div>
         </div>
       </div>

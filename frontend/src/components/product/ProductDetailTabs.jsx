@@ -2,18 +2,21 @@
 import { useState } from 'react'
 
 export default function ProductDetailTabs({ details = [], specs = {} }) {
-  // Sections de details SAUF l'onglet "תיאור" (redondant avec la description en haut)
+  // Toutes les sections remplies (y compris תיאור, qui devient un onglet a part entiere)
   const sections = (Array.isArray(details) ? details : [])
     .filter(s => s && (s.title || s.body))
-    .filter(s => String(s.title).trim() !== 'תיאור')
 
   const specsObj = specs && typeof specs === 'object' && !Array.isArray(specs) ? specs : {}
   const hasSpecs = Object.keys(specsObj).length > 0
 
-  // Onglets : תיאור טכני (specs) en premier, puis les autres sections
+  // Onglets : d'abord תיאור (si presente), puis les autres sections, puis מפרט טכני en dernier.
+  const descSection = sections.find(s => String(s.title).trim() === 'תיאור' && s.body?.trim())
+  const otherSections = sections.filter(s => String(s.title).trim() !== 'תיאור' && s.body?.trim())
+
   const tabs = []
+  if (descSection) tabs.push({ title: descSection.title || 'תיאור', type: 'text', body: descSection.body })
+  otherSections.forEach(s => tabs.push({ title: s.title || 'מקטע', type: 'text', body: s.body }))
   if (hasSpecs) tabs.push({ title: 'מפרט טכני', type: 'specs' })
-  sections.forEach(s => tabs.push({ title: s.title || 'מקטע', type: 'text', body: s.body }))
 
   const [active, setActive] = useState(0)
   if (tabs.length === 0) return null
