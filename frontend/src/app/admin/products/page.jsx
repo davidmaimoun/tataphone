@@ -795,7 +795,7 @@ function ProductModal({ product, onClose, onSave }) {
           <div className="space-y-2 pt-2">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">אפשרויות נוספות</p>
 
-            <Accordion title="מקטעים" subtitle="(תיאור מלא, אחריות, משלוח)" filled={details.some(s => s.body?.trim())} defaultOpen>
+            <Accordion title="מקטעים" subtitle="(תיאור מלא, אחריות, משלוח)" filled={details.some(s => s.body?.trim())} >
               <div className="space-y-3 mb-2">
                 {details.map((sec, i) => (
                   <div key={i} className="border border-slate-100 rounded-xl p-3 bg-slate-50/50">
