@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function ProductDetailTabs({ details = [], specs = {} }) {
   // Toutes les sections remplies (y compris תיאור, qui devient un onglet a part entiere)
@@ -44,9 +44,50 @@ export default function ProductDetailTabs({ details = [], specs = {} }) {
             ))}
           </div>
         ) : (
-          <p className="text-[15px] text-slate-600 leading-8 whitespace-pre-wrap">{tabs[active]?.body}</p>
+          <ExpandableText key={active} text={tabs[active]?.body} />
         )}
       </div>
+    </div>
+  )
+}
+
+// Texte tronqué à 7 lignes avec bouton "voir plus / voir moins".
+// Le bouton n'apparaît que si le texte dépasse réellement 7 lignes.
+function ExpandableText({ text }) {
+  const [expanded, setExpanded] = useState(false)
+  const [isClamped, setIsClamped] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (el) {
+      // Le texte est tronqué si sa hauteur réelle dépasse la hauteur visible
+      setIsClamped(el.scrollHeight > el.clientHeight + 2)
+    }
+  }, [text])
+
+  return (
+    <div>
+      <p
+        ref={ref}
+        className="text-[15px] text-slate-600 leading-8 whitespace-pre-wrap"
+        style={expanded ? undefined : {
+          display: '-webkit-box',
+          WebkitLineClamp: 7,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+        }}
+      >
+        {text}
+      </p>
+      {(isClamped || expanded) && (
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className="mt-2 text-[14px] font-bold text-primary-600 hover:text-primary-700 transition-colors"
+        >
+          {expanded ? 'הצג פחות ↑' : 'קרא עוד ↓'}
+        </button>
+      )}
     </div>
   )
 }
