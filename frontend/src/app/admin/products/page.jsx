@@ -703,17 +703,17 @@ function ProductModal({ product, onClose, onSave }) {
                     {p.isMain && <div className="absolute top-1 right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center"><Star className="w-3 h-3 text-white fill-white" /></div>}
                     <button type="button" onClick={() => removePhoto(i)} className="absolute top-1 left-1 w-5 h-5 bg-red-500 rounded-full text-white hidden group-hover/ph:flex items-center justify-center"><X className="w-3 h-3" /></button>
                     <div className="flex justify-center gap-1 mt-1">
-                      {i > 0 && <button type="button" onClick={() => movePhoto(i, i - 1)} className="text-[10px] bg-slate-100 rounded px-1 hover:bg-slate-200">←</button>}
-                      {i < photos.length - 1 && <button type="button" onClick={() => movePhoto(i, i + 1)} className="text-[10px] bg-slate-100 rounded px-1 hover:bg-slate-200">→</button>}
+                      {i > 0 && <button type="button" onClick={() => movePhoto(i, i - 1)} className="text-[10px] bg-slate-100 rounded px-1 hover:bg-slate-200">→</button>}
+                      {i < photos.length - 1 && <button type="button" onClick={() => movePhoto(i, i + 1)} className="text-[10px] bg-slate-100 rounded px-1 hover:bg-slate-200">←</button>}
                     </div>
                   </div>
                 ))}
               </div>
             )}
-            <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${isDragActive ? 'border-primary-500 bg-primary-50' : 'border-slate-200 hover:border-primary-400 hover:bg-primary-50/40'}`}>
+            <div {...getRootProps()} className={`border-2 border-dashed rounded-xl py-2.5 px-4 flex items-center justify-center gap-2 cursor-pointer transition-all ${isDragActive ? 'border-primary-500 bg-primary-50' : 'border-slate-200 hover:border-primary-400 hover:bg-primary-50/40'}`}>
               <input {...getInputProps()} />
-              <Upload className="w-6 h-6 text-slate-300 mx-auto mb-1" />
-              <p className="text-[12px] text-slate-400">גרור תמונות או לחץ להעלאה</p>
+              <Upload className="w-4 h-4 text-slate-400" />
+              <p className="text-[12px] font-semibold text-slate-500">גרור תמונות או לחץ להעלאה</p>
             </div>
           </div>
 
@@ -752,8 +752,8 @@ function ProductModal({ product, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Prix + Prix origine */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Prix + Prix origine + Stock */}
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר (₪) *</label>
               <input type="number" min="0" step="0.01" value={form.price || ''} onChange={set('price')} required className="input text-sm" />
@@ -762,16 +762,19 @@ function ProductModal({ product, onClose, onSave }) {
               <label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר מקורי <span className="font-normal text-slate-400">(למבצע)</span></label>
               <input type="number" min="0" step="0.01" value={form.originalPrice || ''} onChange={set('originalPrice')} className="input text-sm" placeholder="אופציונלי" />
             </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">מלאי</label>
+              <input type="number" min="0" value={form.stock || 0} onChange={set('stock')} className="input text-sm" />
+            </div>
           </div>
 
-          {/* Encadré fournisseur : stock + prix fournisseur + SKU */}
+          {/* Description courte */}
+          <div><label className="block text-xs font-bold text-slate-500 mb-1.5">תיאור קצר</label><textarea value={form.description || ''} onChange={set('description')} rows={2} dir="rtl" className="input resize-none text-sm" placeholder="תיאור קצר של המוצר..." /></div>
+
+          {/* Encadré fournisseur : prix fournisseur + SKU */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <p className="text-xs font-bold text-amber-700 mb-3">🔒 פרטי ספק <span className="font-normal text-amber-600">(פנימי — לא מוצג ללקוח)</span></p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-[11px] font-bold text-amber-700 mb-1.5">מלאי</label>
-                <input type="number" min="0" value={form.stock || 0} onChange={set('stock')} className="input text-sm" />
-              </div>
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-[11px] font-bold text-amber-700 mb-1.5">מחיר ספק</label>
                 <input type="number" min="0" step="0.01" value={form.supplierPrice || ''} onChange={set('supplierPrice')} className="input text-sm" placeholder="עלות" />
@@ -787,9 +790,6 @@ function ProductModal({ product, onClose, onSave }) {
               </div>
             </div>
           </div>
-
-          {/* Description courte */}
-          <div><label className="block text-xs font-bold text-slate-500 mb-1.5">תיאור קצר</label><textarea value={form.description || ''} onChange={set('description')} rows={2} dir="rtl" className="input resize-none text-sm" placeholder="תיאור קצר של המוצר..." /></div>
 
           {/* Sections optionnelles repliées */}
           <div className="space-y-2 pt-2">
