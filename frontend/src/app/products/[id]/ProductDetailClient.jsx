@@ -39,7 +39,7 @@ export default function ProductDetailClient({ product }) {
     _id, name, brand, price, originalPrice, description, images = [],
     rating = 0, reviewCount = 0, stock = 0, category, isKosher,
     specs = {}, colors = [], sizes = [], note = '',
-    options = [], variants = [], hasVariants = false,
+    options = [], variants = [], hasVariants = false, details = [],
   } = product
 
   // ── Sélection de variante ──
@@ -221,6 +221,22 @@ export default function ProductDetailClient({ product }) {
               <div className="mt-6 flex gap-3 p-4 rounded-2xl border border-primary-200" style={{ background:'linear-gradient(135deg,var(--primary-pale),#FBF7F4)' }}>
                 <div className="w-8 h-8 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0 mt-0.5"><Info className="w-4 h-4 text-primary-600" /></div>
                 <div><p className="text-[12px] font-bold text-primary-600 uppercase tracking-wider mb-1">💡 כדאי לדעת</p><p className="text-[14px] text-slate-700 leading-relaxed">{note}</p></div>
+              </div>
+            )}
+
+            {/* Sections détaillées (מקטעים : תיאור, אחריות, משלוח...) — n'affiche que celles remplies */}
+            {Array.isArray(details) && details.filter(s => s?.body?.trim()).length > 0 && (
+              <div className="mt-8 space-y-3">
+                {details.filter(s => s?.body?.trim()).map((sec, i) => (
+                  <div key={i} className="border border-slate-100 rounded-2xl overflow-hidden">
+                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
+                      <h3 className="text-[15px] font-bold text-slate-800">{sec.title}</h3>
+                    </div>
+                    <div className="px-5 py-4">
+                      <p className="text-[14px] text-slate-600 leading-7 whitespace-pre-wrap">{sec.body}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

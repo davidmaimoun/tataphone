@@ -174,3 +174,19 @@ body {
 }
 @media (min-width: 640px)  { .carousel-item { width: calc(25% - 6px); } }   /* 4 (tablette) */
 @media (min-width: 1024px) { .carousel-item { width: calc(20% - 7px); } }   /* 5 (desktop) */
+/* ════════════════════════════════════════════════════════════
+   Agrandissement typographique du SITE PUBLIC (+12%).
+   Ne touche PAS l'admin (qui n'a pas le wrapper .public-scale).
+   'zoom' agrandit tout uniformément (y compris les tailles en px
+   fixes) sans décaler la mise en page comme le ferait transform:scale.
+   ════════════════════════════════════════════════════════════ */
+.public-scale {
+  zoom: 1.12;
+}
+/* Fallback pour les rares navigateurs sans 'zoom' (Firefox ancien) :
+   on agrandit au moins la base de police. */
+@supports not (zoom: 1) {
+  .public-scale {
+    font-size: 112%;
+  }
+}

@@ -10,10 +10,12 @@ export default function PublicChrome({ children }) {
   if (isBare) return <>{children}</>
   return (
     <>
-      <PromoBanner />
-      <Navbar />
-      <main className="flex-1" style={{ minHeight: '60vh' }}>{children}</main>
-      <Footer />
+      <div className="public-scale">
+        <PromoBanner />
+        <Navbar />
+        <main className="flex-1" style={{ minHeight: '60vh' }}>{children}</main>
+        <Footer />
+      </div>
       <CartDrawer />
     </>
   )
