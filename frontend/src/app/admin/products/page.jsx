@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Plus, Pencil, Trash2, Search, X, Check, Star, Upload, Layers, Building2, Tag, Zap, ChevronDown, ChevronUp, RefreshCw, AlertCircle, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, X, Check, Star, Upload, Layers, Building2, Tag, Zap, ChevronDown, ChevronUp, RefreshCw, AlertCircle, AlertTriangle, Lock, Unlock } from 'lucide-react'
 import metaService from '@/services/metaService'
 import { productAdmin } from '@/services/productService'
 import productService from '@/services/productService'
@@ -575,6 +575,24 @@ export default function AdminProducts() {
   )
 }
 
+function Accordion({ title, subtitle, filled, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="border border-slate-200 rounded-xl overflow-hidden">
+      <button type="button" onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-slate-50/70 hover:bg-slate-100 transition-colors">
+        <span className="flex items-center gap-2">
+          {filled && <span className="w-2 h-2 rounded-full bg-emerald-500" />}
+          <span className="text-[13px] font-bold text-slate-700">{title}</span>
+          {subtitle && <span className="text-[11px] font-normal text-slate-400">{subtitle}</span>}
+        </span>
+        {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+      </button>
+      {open && <div className="p-4 border-t border-slate-100">{children}</div>}
+    </div>
+  )
+}
+
 function ProductModal({ product, onClose, onSave }) {
   const [metaCategories, setMetaCategories] = useState([])
   const [brands, setBrands] = useState([])
@@ -584,8 +602,9 @@ function ProductModal({ product, onClose, onSave }) {
   const [showNewBrand, setShowNewBrand] = useState(false); const [showNewCat, setShowNewCat] = useState(false); const [showNewTag, setShowNewTag] = useState(false)
   const [note, setNote] = useState(product?.note || '')
   const DEFAULT_SECTIONS = [
-    { title:'תיאור', body:'' }, { title:'אחריות', body:'' },
-    { title:'משלוח', body:'' }, { title:'החזרות', body:'' },
+    { title:'תיאור', body:'' },
+    { title:'אחריות', body:'שנה ע"י בלופון היבואן' },
+    { title:'משלוח', body:'זמן אספקה: 5 ימי עסקים' },
   ]
   const [details, setDetails] = useState(() => {
     const d = product?.details
@@ -598,13 +617,16 @@ function ProductModal({ product, onClose, onSave }) {
     if (s && typeof s === 'object' && !Array.isArray(s)) return Object.entries(s).map(([k, v]) => ({ k: String(k), v: String(v) }))
     return []
   })
+  const [nameHe, setNameHe] = useState(product?.nameHe || (product?.nameEn ? '' : product?.name || ''))
+  const [nameEn, setNameEn] = useState(product?.nameEn || '')
+  const [skuLocked, setSkuLocked] = useState(!!product)
   const [form, setForm] = useState(product ? {
     ...product,
     tags: Array.isArray(product.tags) ? product.tags : [],
-    isKosher: product.isKosher === true,
+    isKosher: product.isKosher !== false,
     salesCount: product.salesCount ?? 0,
     isFeatured: product.isFeatured === true,
-  } : { name:'', brand:'', sku:'', category:'', description:'', price:'', originalPrice:'', supplierPrice:'', stock:0, tags:[], isKosher:false, salesCount:0, isFeatured:false })
+  } : { name:'', brand:'', sku:'', category:'', description:'', price:'', originalPrice:'', supplierPrice:'', stock:0, tags:[], isKosher:true, salesCount:0, isFeatured:false })
   const [photos, setPhotos] = useState((product?.images || []).map((url, i) => ({ url, isMain: i === 0, file: null })))
   // ── Variantes — SEUL système ──
   const [options, setOptions] = useState(() => Array.isArray(product?.options) ? product.options : [])
@@ -635,9 +657,13 @@ function ProductModal({ product, onClose, onSave }) {
   const submit = async (e) => {
     e.preventDefault(); setSaving(true)
     try {
+      const finalName = [nameHe.trim(), nameEn.trim()].filter(Boolean).join(' ')
       const fd = new FormData()
-      const TEXT = ['name','brand','sku','category','description','price','originalPrice','supplierPrice','stock']
+      const TEXT = ['brand','sku','category','description','price','originalPrice','supplierPrice','stock']
       TEXT.forEach(k => { const v = form[k]; if (v !== undefined && v !== null) fd.append(k, v) })
+      fd.append('name', finalName)
+      fd.append('nameHe', nameHe.trim())
+      fd.append('nameEn', nameEn.trim())
       fd.append('tags', JSON.stringify(form.tags || []))
       const specsObj = {}; specs.filter(s => s.k.trim()).forEach(s => { specsObj[s.k.trim()] = s.v.trim() })
       fd.append('specs', JSON.stringify(specsObj))
@@ -691,22 +717,43 @@ function ProductModal({ product, onClose, onSave }) {
             </div>
           </div>
 
+          {/* Nom hébreu + anglais */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2 sm:col-span-1"><label className="block text-xs font-bold text-slate-500 mb-1.5">שם המוצר *</label><input value={form.name} onChange={set('name')} required dir="rtl" className="input text-sm" placeholder="iPhone 15 Pro" /></div>
-            <div><label className="block text-xs font-bold text-slate-500 mb-1.5">SKU</label><input value={form.sku || ''} onChange={set('sku')} dir="rtl" className={`input text-sm ${!form.sku?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`} placeholder="APL-15PM" /></div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">שם בעברית *</label>
+              <input value={nameHe} onChange={e => setNameHe(e.target.value)} required dir="rtl" className="input text-sm" placeholder="אייפון 15 פרו" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">שם באנגלית</label>
+              <input value={nameEn} onChange={e => setNameEn(e.target.value)} dir="ltr" className="input text-sm" placeholder="iPhone 15 Pro" />
+            </div>
+          </div>
+          {(nameHe || nameEn) && (
+            <p className="text-[11px] text-slate-400 -mt-2">שם סופי: <span className="font-semibold text-slate-600">{[nameHe.trim(), nameEn.trim()].filter(Boolean).join(' ')}</span></p>
+          )}
+
+          {/* SKU verrouillé + Marque */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">SKU</label>
+              <div className="relative">
+                <input value={form.sku || ''} onChange={set('sku')} disabled={skuLocked} dir="ltr" className={`input text-sm pl-9 ${skuLocked ? 'bg-slate-100 text-slate-500' : ''} ${!form.sku?.trim() && !skuLocked ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`} placeholder="APL-15PM" />
+                <button type="button" onClick={() => setSkuLocked(v => !v)} className="absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-primary-600 hover:bg-slate-100 transition-colors">
+                  {skuLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">מותג *</label>
+              {!showNewBrand ? (
+                <div className="flex gap-2"><select value={form.brand} onChange={set('brand')} required className={`input text-sm flex-1 ${!form.brand?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`}><option value="">בחר...</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select><button type="button" onClick={() => setShowNewBrand(true)} className="btn btn-ghost text-xs px-3 py-2">+</button></div>
+              ) : (
+                <div className="flex gap-2"><input value={newBrand} onChange={e => setNewBrand(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="שם המותג..." autoFocus /><button type="button" onClick={addBrand} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewBrand(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
+              )}
+            </div>
           </div>
 
-          {/* Brand */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1.5">מותג *</label>
-            {!showNewBrand ? (
-              <div className="flex gap-2"><select value={form.brand} onChange={set('brand')} required className={`input text-sm flex-1 ${!form.brand?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`}><option value="">בחר מותג...</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select><button type="button" onClick={() => setShowNewBrand(true)} className="btn btn-ghost text-xs px-3 py-2">+ חדש</button></div>
-            ) : (
-              <div className="flex gap-2"><input value={newBrand} onChange={e => setNewBrand(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="שם המותג..." autoFocus /><button type="button" onClick={addBrand} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewBrand(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
-            )}
-          </div>
-
-          {/* Category + Stock */}
+          {/* Catégorie + Stock */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1.5">קטגוריה *</label>
@@ -716,117 +763,107 @@ function ProductModal({ product, onClose, onSave }) {
                 <div className="flex gap-2"><input value={newCat} onChange={e => setNewCat(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="קטגוריה חדשה..." autoFocus /><button type="button" onClick={addCat} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewCat(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
               )}
             </div>
-            <div><label className="block text-xs font-bold text-slate-500 mb-1.5">מלאי <span className="font-normal text-slate-400">(אם אין וריאציות)</span></label><input type="number" min="0" value={form.stock || 0} onChange={set('stock')} className="input text-sm" /></div>
+            <div><label className="block text-xs font-bold text-slate-500 mb-1.5">מלאי</label><input type="number" min="0" value={form.stock || 0} onChange={set('stock')} className="input text-sm" /></div>
           </div>
 
-          {/* Prices */}
-          {(() => {
-            const hasVariants = variants.some(v => v.price !== '' && v.price != null)
-            return (
-              <div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר (₪) {!hasVariants && '*'}</label>
-                    <input type="number" min="0" step="0.01" value={hasVariants ? '' : (form.price || '')} onChange={set('price')} required={!hasVariants} disabled={hasVariants} className={`input text-sm ${hasVariants ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`} placeholder={hasVariants ? 'מנוהל לפי וריאציות' : ''} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר מקורי</label>
-                    <input type="number" min="0" step="0.01" value={hasVariants ? '' : (form.originalPrice || '')} onChange={set('originalPrice')} disabled={hasVariants} className={`input text-sm ${hasVariants ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}`} placeholder={hasVariants ? 'מנוהל לפי וריאציות' : 'אופציונלי'} />
-                  </div>
-                </div>
-                {hasVariants && <p className="text-[11px] text-amber-600 mt-1.5">💡 המחיר מנוהל לפי הוריאציות למטה. ערוך את המחיר בטבלת הוריאציות.</p>}
-              </div>
-            )
-          })()}
+          {/* Prix + Prix origine */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר (₪) *</label>
+              <input type="number" min="0" step="0.01" value={form.price || ''} onChange={set('price')} required className="input text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">מחיר מקורי <span className="font-normal text-slate-400">(למבצע)</span></label>
+              <input type="number" min="0" step="0.01" value={form.originalPrice || ''} onChange={set('originalPrice')} className="input text-sm" placeholder="אופציונלי" />
+            </div>
+          </div>
 
           {/* Prix fournisseur */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-            <label className="block text-xs font-bold text-amber-700 mb-1.5">🔒 מחיר ספק <span className="font-normal text-amber-600">(פנימי — לא מוצג ללקוח)</span></label>
+            <label className="block text-xs font-bold text-amber-700 mb-1.5">🔒 מחיר ספק <span className="font-normal text-amber-600">(פנימי)</span></label>
             <input type="number" min="0" step="0.01" value={form.supplierPrice || ''} onChange={set('supplierPrice')} className="input text-sm max-w-[200px]" placeholder="עלות מהספק" />
           </div>
 
-          {/* Description */}
-          <div><label className="block text-xs font-bold text-slate-500 mb-1.5">תיאור</label><textarea value={form.description || ''} onChange={set('description')} rows={3} dir="rtl" className={`input resize-none text-sm ${!form.description?.trim() ? 'ring-1 ring-amber-200 border-amber-200 bg-amber-50/30' : ''}`} placeholder="תיאור המוצר..." /></div>
+          {/* Description courte */}
+          <div><label className="block text-xs font-bold text-slate-500 mb-1.5">תיאור קצר</label><textarea value={form.description || ''} onChange={set('description')} rows={2} dir="rtl" className="input resize-none text-sm" placeholder="תיאור קצר של המוצר..." /></div>
 
-          {/* Kosher */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2">כשרות</label>
-            <div className="flex gap-2 max-w-xs">
-              {[{ val:true, label:'✡ כשר', color:'#059669', bg:'#F0FDF4', border:'#6EE7B7' }, { val:false, label:'לא כשר', color:'#DC2626', bg:'#FEF2F2', border:'#FECACA' }].map(({ val, label, color, bg, border }) => (
-                <label key={String(val)} className="flex-1 cursor-pointer">
-                  <input type="radio" name="isKosher" className="sr-only" checked={form.isKosher === val} onChange={() => setForm(p => ({ ...p, isKosher: val }))} />
-                  <div className="flex items-center justify-center py-2 px-3 rounded-xl border-2 text-[12px] font-bold transition-all" style={{ background: form.isKosher === val ? bg : '#FAFAFA', borderColor: form.isKosher === val ? border : '#E2E8F0', color: form.isKosher === val ? color : '#94A3B8' }}>{label}</div>
-                </label>
-              ))}
-            </div>
-          </div>
+          {/* Sections optionnelles repliées */}
+          <div className="space-y-2 pt-2">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">אפשרויות נוספות</p>
 
-          {/* Ventes (salesCount) + Mise en avant (featured) */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1.5">מספר מכירות <span className="font-normal text-slate-400">(אוטומטי, ניתן לשנות ידנית)</span></label>
-              <input type="number" min="0" value={form.salesCount ?? 0} onChange={set('salesCount')} className="input text-sm" />
-              <p className="text-[11px] text-slate-400 mt-1">מתעדכן אוטומטית בכל מכירה. שנה כדי "לקדם" מוצר.</p>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1.5">מוצר מומלץ</label>
-              <button type="button" onClick={() => setForm(p => ({ ...p, isFeatured: !p.isFeatured }))}
-                className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border-2 text-[12px] font-bold transition-all ${form.isFeatured ? 'bg-amber-50 border-amber-300 text-amber-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
-                <Star className={`w-4 h-4 ${form.isFeatured ? 'fill-amber-400' : ''}`} />
-                {form.isFeatured ? 'מוצג בהמלצות ⭐' : 'הוסף להמלצות'}
-              </button>
-              <p className="text-[11px] text-slate-400 mt-1">מקפיץ את המוצר לראש "רבי המכר".</p>
-            </div>
-          </div>
+            <Accordion title="תגיות" subtitle="(לחיפוש)" filled={form.tags?.length > 0}>
+              <div className="flex flex-wrap gap-2">
+                {metaTags.map(t => (
+                  <button type="button" key={t} onClick={() => toggleTag(t)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${form.tags?.includes(t) ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300'}`}>#{t}</button>
+                ))}
+                {!showNewTag ? <button type="button" onClick={() => setShowNewTag(true)} className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-500 transition-all">+ הוסף</button>
+                 : <div className="flex gap-1.5"><input value={newTag} onChange={e => setNewTag(e.target.value)} dir="ltr" className="input text-xs px-2 py-1 h-auto w-28" placeholder="tag..." autoFocus /><button type="button" onClick={addTag} className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center"><Check className="w-3.5 h-3.5 text-white" /></button><button type="button" onClick={() => setShowNewTag(false)} className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><X className="w-3.5 h-3.5 text-slate-500" /></button></div>}
+              </div>
+            </Accordion>
 
-          {/* Tags */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2">תגיות <span className="font-normal text-slate-400">(לחיפוש חכם + ברגע האחרון)</span></label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {metaTags.map(t => (
-                <button type="button" key={t} onClick={() => toggleTag(t)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${form.tags?.includes(t) ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300'}`}>#{t}</button>
-              ))}
-              {!showNewTag ? <button type="button" onClick={() => setShowNewTag(true)} className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-dashed border-slate-300 text-slate-400 hover:border-emerald-400 hover:text-emerald-500 transition-all">+ הוסף</button>
-               : <div className="flex gap-1.5"><input value={newTag} onChange={e => setNewTag(e.target.value)} dir="ltr" className="input text-xs px-2 py-1 h-auto w-28" placeholder="tag..." autoFocus /><button type="button" onClick={addTag} className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center"><Check className="w-3.5 h-3.5 text-white" /></button><button type="button" onClick={() => setShowNewTag(false)} className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center"><X className="w-3.5 h-3.5 text-slate-500" /></button></div>}
-            </div>
-          </div>
+            <Accordion title="כשרות" subtitle={form.isKosher ? "(כשר)" : "(לא כשר)"} filled>
+              <div className="flex gap-2 max-w-xs">
+                {[{ val:true, label:'✡ כשר', color:'#059669', bg:'#F0FDF4', border:'#6EE7B7' }, { val:false, label:'לא כשר', color:'#DC2626', bg:'#FEF2F2', border:'#FECACA' }].map(({ val, label, color, bg, border }) => (
+                  <label key={String(val)} className="flex-1 cursor-pointer">
+                    <input type="radio" name="isKosher" className="sr-only" checked={form.isKosher === val} onChange={() => setForm(p => ({ ...p, isKosher: val }))} />
+                    <div className="flex items-center justify-center py-2 px-3 rounded-xl border-2 text-[12px] font-bold transition-all" style={{ background: form.isKosher === val ? bg : '#FAFAFA', borderColor: form.isKosher === val ? border : '#E2E8F0', color: form.isKosher === val ? color : '#94A3B8' }}>{label}</div>
+                  </label>
+                ))}
+              </div>
+            </Accordion>
 
-          {/* Variantes — SEUL système couleur/taille/stockage */}
-          <VariantsEditor options={options} setOptions={setOptions} variants={variants} setVariants={setVariants} />
-
-          {/* Note */}
-          <div><label className="block text-xs font-bold text-slate-500 mb-1.5">הערת מנהל <span className="font-normal text-slate-400">("כדאי לדעת")</span></label><textarea value={note} onChange={e => setNote(e.target.value)} rows={2} dir="rtl" className="input resize-none text-sm" placeholder="לדוגמה: מחיר כולל מתאם ישראלי." /></div>
-
-          {/* Specs */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2">מפרט טכני</label>
-            <div className="space-y-2 mb-2">
-              {specs.map((row, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <input value={row.k} onChange={e => setSpecs(prev => prev.map((r, idx) => idx === i ? { ...r, k: e.target.value } : r))} dir="rtl" className="input text-xs flex-1" placeholder="שם" />
-                  <input value={row.v} onChange={e => setSpecs(prev => prev.map((r, idx) => idx === i ? { ...r, v: e.target.value } : r))} dir="rtl" className="input text-xs flex-1" placeholder="ערך" />
-                  <button type="button" onClick={() => setSpecs(prev => prev.filter((_, idx) => idx !== i))} className="w-7 h-7 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center flex-shrink-0"><X className="w-3.5 h-3.5" /></button>
+            <Accordion title="קידום וחשיפות" subtitle="(מומלץ, מכירות)" filled={form.isFeatured}>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1.5">מספר מכירות</label>
+                  <input type="number" min="0" value={form.salesCount ?? 0} onChange={set('salesCount')} className="input text-sm" />
                 </div>
-              ))}
-            </div>
-            <button type="button" onClick={() => setSpecs(prev => [...prev, { k:'', v:'' }])} className="flex items-center gap-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg transition-colors"><Plus className="w-3.5 h-3.5" />הוסף שורה</button>
-          </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1.5">מוצר מומלץ</label>
+                  <button type="button" onClick={() => setForm(p => ({ ...p, isFeatured: !p.isFeatured }))}
+                    className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border-2 text-[12px] font-bold transition-all ${form.isFeatured ? 'bg-amber-50 border-amber-300 text-amber-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+                    <Star className={`w-4 h-4 ${form.isFeatured ? 'fill-amber-400' : ''}`} />
+                    {form.isFeatured ? 'מוצג ⭐' : 'הוסף להמלצות'}
+                  </button>
+                </div>
+              </div>
+            </Accordion>
 
-          {/* Sections */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2">מקטעים — לשוניות מתחת למוצר <span className="font-normal text-slate-400">(תיאור, אחריות, משלוח...)</span></label>
-            <div className="space-y-3 mb-2">
-              {details.map((sec, i) => (
-                <div key={i} className="border border-slate-100 rounded-xl p-3 bg-slate-50/50">
-                  <div className="flex gap-2 items-center mb-2">
-                    <input value={sec.title} onChange={e => setDetails(prev => prev.map((s,idx)=>idx===i?{...s,title:e.target.value}:s))} dir="rtl" className="input text-sm font-bold flex-1" placeholder="כותרת הלשונית (תיאור, אחריות...)" />
-                    <button type="button" onClick={() => setDetails(prev => prev.filter((_,idx)=>idx!==i))} className="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center flex-shrink-0"><X className="w-4 h-4" /></button>
+            <Accordion title="וריאציות" subtitle="(צבע, אחסון... — מתקדם)" filled={variants.length > 0}>
+              <VariantsEditor options={options} setOptions={setOptions} variants={variants} setVariants={setVariants} />
+            </Accordion>
+
+            <Accordion title="מקטעים" subtitle="(תיאור מלא, אחריות, משלוח)" filled={details.some(s => s.body?.trim())} defaultOpen>
+              <div className="space-y-3 mb-2">
+                {details.map((sec, i) => (
+                  <div key={i} className="border border-slate-100 rounded-xl p-3 bg-slate-50/50">
+                    <div className="flex gap-2 items-center mb-2">
+                      <input value={sec.title} onChange={e => setDetails(prev => prev.map((s,idx)=>idx===i?{...s,title:e.target.value}:s))} dir="rtl" className="input text-sm font-bold flex-1" placeholder="כותרת" />
+                      <button type="button" onClick={() => setDetails(prev => prev.filter((_,idx)=>idx!==i))} className="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center flex-shrink-0"><X className="w-4 h-4" /></button>
+                    </div>
+                    <textarea value={sec.body} onChange={e => setDetails(prev => prev.map((s,idx)=>idx===i?{...s,body:e.target.value}:s))} rows={2} dir="rtl" className="input resize-none text-sm w-full" placeholder="תוכן..." />
                   </div>
-                  <textarea value={sec.body} onChange={e => setDetails(prev => prev.map((s,idx)=>idx===i?{...s,body:e.target.value}:s))} rows={3} dir="rtl" className="input resize-none text-sm w-full" placeholder="תוכן הלשונית..." />
-                </div>
-              ))}
-            </div>
-            <button type="button" onClick={() => setDetails(prev => [...prev, { title:'', body:'' }])} className="flex items-center gap-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg transition-colors"><Plus className="w-3.5 h-3.5" />הוסף מקטע</button>
+                ))}
+              </div>
+              <button type="button" onClick={() => setDetails(prev => [...prev, { title:'', body:'' }])} className="flex items-center gap-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg transition-colors"><Plus className="w-3.5 h-3.5" />הוסף מקטע</button>
+            </Accordion>
+
+            <Accordion title="מפרט טכני" subtitle="(אופציונלי)" filled={specs.some(s => s.k.trim())}>
+              <div className="space-y-2 mb-2">
+                {specs.map((row, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input value={row.k} onChange={e => setSpecs(prev => prev.map((r, idx) => idx === i ? { ...r, k: e.target.value } : r))} dir="rtl" className="input text-xs flex-1" placeholder="שם" />
+                    <input value={row.v} onChange={e => setSpecs(prev => prev.map((r, idx) => idx === i ? { ...r, v: e.target.value } : r))} dir="rtl" className="input text-xs flex-1" placeholder="ערך" />
+                    <button type="button" onClick={() => setSpecs(prev => prev.filter((_, idx) => idx !== i))} className="w-7 h-7 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center flex-shrink-0"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+              </div>
+              <button type="button" onClick={() => setSpecs(prev => [...prev, { k:'', v:'' }])} className="flex items-center gap-1.5 text-xs font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg transition-colors"><Plus className="w-3.5 h-3.5" />הוסף שורה</button>
+            </Accordion>
+
+            <Accordion title="הערת מנהל" subtitle={'("כדאי לדעת")'} filled={!!note.trim()}>
+              <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} dir="rtl" className="input resize-none text-sm w-full" placeholder="לדוגמה: מחיר כולל מתאם ישראלי." />
+            </Accordion>
           </div>
 
           <div className="flex gap-3 pt-2">

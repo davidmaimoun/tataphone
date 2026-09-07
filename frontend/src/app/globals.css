@@ -190,3 +190,16 @@ body {
     font-size: 112%;
   }
 }
+
+/* ════════════════════════════════════════════════════════════
+   Agrandissement du contenu ADMIN (+12%, comme le public).
+   Appliqué sur <main>, pas sur la sidebar (qui garde sa taille).
+   ════════════════════════════════════════════════════════════ */
+.admin-scale {
+  zoom: 1.12;
+}
+@supports not (zoom: 1) {
+  .admin-scale {
+    font-size: 112%;
+  }
+}

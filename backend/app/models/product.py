@@ -250,6 +250,8 @@ def create_product(data: dict) -> dict:
     orig     = float(data.get('originalPrice') or 0)
     doc = {
         'name':          data.get('name', ''),
+        'nameHe':        data.get('nameHe', ''),
+        'nameEn':        data.get('nameEn', ''),
         'brand':         data.get('brand', ''),
         'sku':           data.get('sku', ''),
         'category':      data.get('category', 'smartphones'),
@@ -406,6 +408,8 @@ def serialize(p: dict, admin: bool = False) -> dict:
     out = {
         '_id':           str(p['_id']),
         'name':          p.get('name'),
+        'nameHe':        p.get('nameHe', ''),
+        'nameEn':        p.get('nameEn', ''),
         'brand':         p.get('brand'),
         'sku':           p.get('sku'),
         'category':      p.get('category'),

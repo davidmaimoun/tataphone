@@ -115,7 +115,7 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 bg-slate-50 overflow-auto">
+      <main className="admin-scale flex-1 bg-slate-50 overflow-auto">
         {children}
       </main>
     </div>
