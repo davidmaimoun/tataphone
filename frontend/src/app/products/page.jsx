@@ -201,14 +201,17 @@ function ProductsInner() {
   }, [products, query, category, brand, sale, isNew, isKosher, inStock, minPrice, maxPrice, sort])
 
   return (
-    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-6">
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-8 mt-2 sm:mt-4">
       {/* Titre + tri + bouton filtre */}
-      <div className="flex items-center justify-between mb-5 gap-3">
-        <div className="min-w-0">
-          <h1 className="font-black text-2xl sm:text-3xl text-slate-900 truncate">
-            {query ? `תוצאות עבור "${query}"` : 'כל המוצרים'}
-          </h1>
-          <p className="text-[13px] text-slate-400 mt-0.5">{filtered.length} מוצרים</p>
+      <div className="flex items-center justify-between mb-6 gap-3">
+        <div className="min-w-0 flex items-center gap-3">
+          <div className="w-1.5 h-9 rounded-full flex-shrink-0" style={{ background:'linear-gradient(180deg,#E8A882,#CC785C,#9D4B2E)' }} />
+          <div className="min-w-0">
+            <h1 className="font-black text-2xl sm:text-3xl text-slate-900 truncate">
+              {query ? `תוצאות עבור "${query}"` : 'כל המוצרים'}
+            </h1>
+            <p className="text-[13px] text-slate-400 mt-0.5">{filtered.length} מוצרים</p>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Bouton filtre */}
@@ -241,11 +244,11 @@ function ProductsInner() {
 
       {/* Grille produits */}
       {loading ? (
-        <div className="products-grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">{Array.from({length:8}).map((_,i) => <div key={i} className="bg-white/60 rounded-2xl animate-pulse" style={{height:300}} />)}</div>
+        <div className="products-grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">{Array.from({length:10}).map((_,i) => <div key={i} className="bg-white/60 rounded-2xl animate-pulse" style={{height:300}} />)}</div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-24"><p className="text-6xl mb-4">🔍</p><p className="font-black text-xl text-slate-800 mb-2">לא נמצאו מוצרים</p><button onClick={clearFilters} className="btn btn-primary mt-4 px-8">הצג הכל</button></div>
       ) : (
-        <div className="products-grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 items-stretch">{filtered.map((p) => <ProductCard key={p._id} product={p} />)}</div>
+        <div className="products-grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 items-stretch">{filtered.map((p) => <ProductCard key={p._id} product={p} />)}</div>
       )}
 
       {/* Drawer de filtres */}
