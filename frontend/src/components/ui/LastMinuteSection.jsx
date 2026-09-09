@@ -46,6 +46,43 @@ function MiniCard({ product, index }) {
   )
 }
 
+// Mini-carte VERTICALE (style haimke) : photo + infos en ligne, bouton dessous, séparateur
+function MiniCardVertical({ product, isLast }) {
+  const addItem = useCartStore(s => s.addItem)
+  const [added, setAdded] = useState(false)
+  const { _id, name, price, originalPrice, images = [], hasVariants, variants = [] } = product
+  const img = images[0]
+  const discPct = originalPrice > price ? Math.round((1 - price/originalPrice)*100) : 0
+  const needsChoice = hasVariants && (Array.isArray(variants) ? variants.length : 0) > 1
+  const handleAdd = (e) => {
+    e.preventDefault(); e.stopPropagation()
+    if (needsChoice) { window.location.href = `/products/${_id}`; return }
+    addItem(product); toast.success(`${name} נוסף! 🛒`); setAdded(true); setTimeout(() => setAdded(false), 1600)
+  }
+  return (
+    <div className={`py-2.5 ${!isLast ? 'border-b border-slate-100' : ''}`}>
+      <Link href={`/products/${_id}`} className="group block">
+        <div className="flex items-start gap-2" style={{ direction:'rtl' }}>
+          <div className="relative flex-shrink-0 bg-slate-50 rounded-lg overflow-hidden" style={{ width:52, height:52 }}>
+            {img ? <img src={img} alt={name} loading="lazy" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center" style={{ background:'linear-gradient(135deg, #F5EFE9, #EDE4DC)' }}><svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" style={{ color:'#C9B8AC' }}><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="10" r="1.5" fill="currentColor"/><path d="M3 16l4.5-4 3 2.5L15 10l6 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>}
+            {discPct > 0 && <span className="absolute top-0.5 left-0.5 text-[7px] font-black px-1 rounded-full text-white leading-tight" style={{ background:'#DC2626' }}>−{discPct}%</span>}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p dir="ltr" className="text-[11px] font-semibold text-slate-700 line-clamp-2 leading-tight" style={{ textAlign:'right' }}>{name}</p>
+            <div className="flex items-baseline gap-1.5 mt-1">
+              <span className="font-black text-primary-600 text-[13px]">₪{price?.toLocaleString()}</span>
+              {originalPrice > price && <span className="text-[10px] text-slate-400 line-through">₪{originalPrice?.toLocaleString()}</span>}
+            </div>
+          </div>
+        </div>
+      </Link>
+      <button type="button" onClick={handleAdd} className="w-full mt-2 py-1.5 rounded-lg text-[11px] font-bold transition-all" style={{ background: added ? '#059669' : 'var(--primary-pale)', color: added ? '#fff' : 'var(--primary-deep)', border: `1px solid ${added ? '#059669' : 'var(--primary-border)'}` }}>
+        {added ? '✓ נוסף' : needsChoice ? 'בחר אפשרויות' : 'הוספה לסל'}
+      </button>
+    </div>
+  )
+}
+
 const VISIBLE = 9
 
 export default function LastMinuteSection({ compact = false, vertical = false }) {
@@ -75,26 +112,28 @@ export default function LastMinuteSection({ compact = false, vertical = false })
   const visible = products.slice(0, VISIBLE)
   const hidden = products.slice(VISIBLE)
 
-  // ── Mode VERTICAL : colonne latérale, 1 produit par ligne, scrollable ──
+  // ── Mode VERTICAL : colonne latérale compacte (style haimke) ──
   if (vertical) {
     return (
-      <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background:'linear-gradient(135deg, #FBF2EC 0%, #FDF8F4 55%, #FCF4EF 100%)', border:'1px solid #F0DDD1', boxShadow:'0 2px 16px rgba(157,75,46,0.06)' }}>
-        <div className="absolute pointer-events-none" style={{ width:200, height:200, top:-100, left:-50, borderRadius:'50%', background:'radial-gradient(circle, rgba(204,120,92,0.07) 0%, transparent 70%)' }} />
-        <div className="flex items-center gap-2 mb-3.5 relative">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{background:'linear-gradient(135deg,#F59E0B,#D97706)',boxShadow:'0 3px 10px rgba(245,158,11,0.3)'}}><Zap className="w-4 h-4 text-white fill-white" /></div>
-          <div>
-            <h2 className="font-black text-slate-900 text-[14px] leading-none">ברגע האחרון</h2>
-            <p className="text-[10px] text-slate-500 mt-0.5">אביזרים מומלצים ✨</p>
+      <div className="rounded-xl bg-white border border-slate-200 overflow-hidden" style={{ boxShadow:'0 2px 12px rgba(0,0,0,0.04)' }}>
+        {/* Bandeau titre */}
+        <div className="px-3 py-2.5 text-center" style={{ background:'linear-gradient(135deg, #FBF2EC, #FCF4EF)', borderBottom:'1px solid #F0DDD1' }}>
+          <div className="flex items-center justify-center gap-1.5">
+            <Zap className="w-3.5 h-3.5" style={{ color:'#D97706', fill:'#D97706' }} />
+            <h2 className="font-black text-slate-800 text-[12px]">ברגע האחרון</h2>
           </div>
+          <p className="text-[9px] text-slate-500 mt-0.5">אביזרים מומלצים להוסיף להזמנה ✨</p>
         </div>
-        {loading ? (
-          <div className="space-y-2">{Array.from({length:5}).map((_,i) => <div key={i} className="bg-white/70 rounded-xl animate-pulse" style={{height:76}} />)}</div>
-        ) : (
-          <div className="space-y-2 overflow-y-auto pr-1 relative" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-            {products.map((p,i) => <MiniCard key={p._id} product={p} index={i} />)}
-          </div>
-        )}
-        <Link href="/products?isAccessory=true"><button className="w-full mt-3 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-bold text-primary-600 bg-white border border-primary-200 hover:bg-primary-50 transition-colors">לכל האביזרים <ArrowLeft className="w-3 h-3" /></button></Link>
+        {/* Liste produits */}
+        <div className="px-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+          {loading ? (
+            <div className="space-y-2 py-3">{Array.from({length:5}).map((_,i) => <div key={i} className="bg-slate-100 rounded-lg animate-pulse" style={{height:88}} />)}</div>
+          ) : (
+            products.map((p, i) => <MiniCardVertical key={p._id} product={p} isLast={i === products.length - 1} />)
+          )}
+        </div>
+        {/* Lien tout voir */}
+        <Link href="/products?isAccessory=true"><button className="w-full py-2 text-[11px] font-bold text-primary-600 border-t border-slate-100 hover:bg-primary-50 transition-colors flex items-center justify-center gap-1">לכל האביזרים <ArrowLeft className="w-3 h-3" /></button></Link>
       </div>
     )
   }

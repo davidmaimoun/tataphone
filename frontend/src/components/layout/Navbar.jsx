@@ -40,18 +40,18 @@ export default function Navbar() {
   // Icône panier sobre + petit badge (desktop et mobile)
   const CartButtonMobile = () => (
     <Link href="/cart" className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors flex-shrink-0">
-      <ShoppingCart className="w-5 h-5" style={{ color:'var(--primary)' }} />
+      <ShoppingCart className="w-6 h-6" style={{ color:'var(--primary)' }} />
       {cartCount > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 text-white text-[9px] font-black rounded-full flex items-center justify-center" style={{ background:'var(--primary)' }}>{cartCount > 9 ? '9+' : cartCount}</span>}
     </Link>
   )
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.06)]' : 'bg-white/80 backdrop-blur-md'}`}>
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-5 lg:px-6">
-        <div className="flex items-center gap-2 sm:gap-3 h-14">
+      <div className="max-w-[1440px] mx-auto px-2 sm:px-4 lg:px-5">
+        <div className="flex items-center gap-2 sm:gap-3 h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 flex items-center">
-            <Image src="/logo.png" alt="טאטעפון" width={120} height={32} className="h-6 sm:h-7 w-auto object-contain" priority />
+            <Image src="/logo.png" alt="טאטעפון" width={140} height={38} className="h-8 sm:h-9 w-auto object-contain" priority />
           </Link>
 
           {/* Search bar DESKTOP au centre */}
@@ -84,7 +84,7 @@ export default function Navbar() {
           {/* Actions desktop : wishlist + cart + user */}
           <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
             <Link href="/wishlist" className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors">
-              <Heart className="w-5 h-5 text-slate-500" />
+              <Heart className="w-6 h-6 text-slate-500" />
               {wishlistIds.length > 0 && <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{wishlistIds.length > 9 ? '9+' : wishlistIds.length}</span>}
             </Link>
             <CartButtonMobile />

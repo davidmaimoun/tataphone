@@ -101,8 +101,8 @@ export default function ProductDetailClient({ product }) {
         <span dir="ltr" className="text-slate-700 font-medium truncate max-w-xs" style={{ textAlign: 'right' }}>{name}</span>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-2">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,20%)_1fr_1fr] gap-6 lg:gap-8">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6 pb-2">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,20%)_1fr_1fr] gap-4 lg:gap-6">
           {/* LastMinute — colonne latérale à GAUCHE (order-last en RTL) — passe en bas sur mobile */}
           <aside className="order-last">
             <div className="lg:sticky lg:top-4">
