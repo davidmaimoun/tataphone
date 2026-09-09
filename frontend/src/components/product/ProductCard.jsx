@@ -30,7 +30,14 @@ export default function ProductCard({ product, forceNew = false, rank = undefine
         {img
           ? <Image src={img} alt={name} fill sizes="(max-width:640px) 50vw, 200px" unoptimized
                    className="object-cover group-hover:scale-105 transition-transform duration-300" />
-          : <div className="w-full h-full flex items-center justify-center text-5xl text-slate-200">📱</div>}
+          : <div className="w-full h-full flex flex-col items-center justify-center gap-1.5" style={{ background:'linear-gradient(135deg, #F5EFE9 0%, #EDE4DC 100%)' }}>
+              <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none" style={{ color:'#C9B8AC' }}>
+                <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                <circle cx="8.5" cy="10" r="1.5" fill="currentColor"/>
+                <path d="M3 16l4.5-4 3 2.5L15 10l6 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="font-rubik font-black text-[10px] tracking-wide" style={{ color:'#C9B8AC' }}>טאטעפון</span>
+            </div>}
 
         {/* Badges */}
         <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">

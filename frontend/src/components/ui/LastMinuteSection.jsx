@@ -26,7 +26,7 @@ function MiniCard({ product, index }) {
       <Link href={`/products/${_id}`} className="group block">
         <div className="bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-3 p-3" style={{direction:'rtl'}}>
           <div className="relative flex-shrink-0 bg-slate-50 rounded-lg overflow-hidden" style={{width:64,height:64}}>
-            {img ? <img src={img} alt={name} loading="lazy" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200"><span className="font-rubik font-black text-slate-300 text-[10px] text-center leading-tight">טאטע<br/>פון</span></div>}
+            {img ? <img src={img} alt={name} loading="lazy" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center" style={{ background:'linear-gradient(135deg, #F5EFE9, #EDE4DC)' }}><svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" style={{ color:'#C9B8AC' }}><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="10" r="1.5" fill="currentColor"/><path d="M3 16l4.5-4 3 2.5L15 10l6 5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>}
             {discPct > 0 && <span className="absolute top-0.5 left-0.5 text-[8px] font-black px-1 py-0.5 rounded-full text-white leading-none" style={{background:'#DC2626'}}>−{discPct}%</span>}
           </div>
           <div className="flex-1 min-w-0">

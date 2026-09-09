@@ -102,7 +102,7 @@ export default function ProductDetailClient({ product }) {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-2">
-        <div className="grid grid-cols-1 lg:grid-cols-[175px_1fr_1fr] gap-6 lg:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,20%)_1fr_1fr] gap-6 lg:gap-8">
           {/* LastMinute — colonne latérale à GAUCHE (order-last en RTL) — passe en bas sur mobile */}
           <aside className="order-last">
             <div className="lg:sticky lg:top-4">
@@ -115,7 +115,14 @@ export default function ProductDetailClient({ product }) {
             <div className="relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm" style={{ height: 420 }}>
               {images[mainImg]
                 ? <Image src={images[mainImg]} alt={name} fill sizes="(max-width:1024px) 100vw, 50vw" unoptimized className="object-cover" priority />
-                : <div className="w-full h-full flex items-center justify-center text-9xl">📱</div>}
+                : <div className="w-full h-full flex flex-col items-center justify-center gap-3" style={{ background:'linear-gradient(135deg, #F5EFE9 0%, #EDE4DC 100%)' }}>
+                    <svg className="w-20 h-20" viewBox="0 0 24 24" fill="none" style={{ color:'#C9B8AC' }}>
+                      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.2"/>
+                      <circle cx="8.5" cy="10" r="1.5" fill="currentColor"/>
+                      <path d="M3 16l4.5-4 3 2.5L15 10l6 5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="font-rubik font-black text-lg tracking-wide" style={{ color:'#C9B8AC' }}>טאטעפון</span>
+                  </div>}
             </div>
             {images.length > 1 && (
               <div className="flex gap-2.5 mt-3">
