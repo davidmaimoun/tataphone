@@ -287,10 +287,29 @@ export default function AdminProducts() {
   const [sortBy, setSortBy] = useState('createdAt')  // colonne triée
   const [sortDir, setSortDir] = useState('desc')     // 'asc' | 'desc'
 
-  // Sélection pour export par batch (Set d'_id)
+  // Sélection pour export/suppression par batch (Set d'_id)
   const [selected, setSelected] = useState(() => new Set())
   const toggleSelect = (id) => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   const clearSelection = () => setSelected(new Set())
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+
+  // Suppression en masse des produits sélectionnés
+  const bulkDelete = async () => {
+    setBulkDeleting(true)
+    const ids = [...selected]
+    let ok = 0, fail = 0
+    for (const id of ids) {
+      try { await productAdmin.remove(id); ok++ }
+      catch { fail++ }
+    }
+    setProducts(prev => prev.filter(p => !selected.has(p._id)))
+    clearSelection()
+    setConfirmBulkDelete(false)
+    setBulkDeleting(false)
+    if (fail === 0) toast.success(`${ok} מוצרים נמחקו`)
+    else toast.error(`${ok} נמחקו, ${fail} נכשלו`)
+  }
 
   const load = async () => { setLoading(true); try { const { default: api } = await import('@/services/api'); const r = await api.get('/products/admin/list'); setProducts(r.data.products || []) } catch { productService.getAll({ limit: 9999 }).then(d => setProducts(d.products || [])) } finally { setLoading(false) } }
   useEffect(() => { load() }, [])
@@ -492,9 +511,36 @@ export default function AdminProducts() {
         <div className="flex items-center justify-between gap-3 mb-3 px-4 py-2.5 rounded-xl bg-primary-50 border border-primary-200 flex-wrap">
           <span className="text-[13px] font-bold text-primary-700">{selected.size} מוצרים נבחרו</span>
           <div className="flex items-center gap-2 flex-wrap">
-            <button onClick={() => exportSelected('json')} className="btn btn-secondary px-3 py-1.5 text-[12px] gap-1.5">💾 ייצא נבחרים (JSON)</button>
-            <button onClick={() => exportSelected('csv')} className="btn btn-secondary px-3 py-1.5 text-[12px] gap-1.5">📊 ייצא נבחרים (CSV)</button>
+            <button onClick={() => exportSelected('json')} className="btn btn-secondary px-3 py-1.5 text-[12px] gap-1.5">📋 JSON</button>
+            <button onClick={() => exportSelected('csv')} className="btn btn-secondary px-3 py-1.5 text-[12px] gap-1.5">📊 Excel</button>
+            <button onClick={() => setConfirmBulkDelete(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-white bg-red-500 hover:bg-red-600 transition-colors"><Trash2 className="w-3.5 h-3.5" />מחק נבחרים</button>
             <button onClick={clearSelection} className="text-[12px] font-bold text-slate-500 hover:text-red-500 px-2 py-1.5 transition-colors">נקה בחירה</button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmation suppression en masse */}
+      {confirmBulkDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !bulkDeleting && setConfirmBulkDelete(false)}>
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl" onClick={e => e.stopPropagation()} dir="rtl">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+              </div>
+              <h3 className="font-black text-slate-900">מחיקת {selected.size} מוצרים</h3>
+            </div>
+            <p className="text-[13px] text-slate-600 leading-6 mb-5">
+              פעולה זו תמחק לצמיתות את {selected.size} המוצרים שנבחרו. לא ניתן לשחזר. להמשיך?
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmBulkDelete(false)} disabled={bulkDeleting}
+                className="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors disabled:opacity-50">ביטול</button>
+              <button onClick={bulkDelete} disabled={bulkDeleting}
+                className="flex-1 py-2.5 rounded-xl text-[13px] font-bold bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                {bulkDeleting ? <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> : <Trash2 className="w-4 h-4" />}
+                מחק {selected.size}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -595,11 +641,12 @@ function Accordion({ title, subtitle, filled, defaultOpen = false, children }) {
 
 function ProductModal({ product, onClose, onSave }) {
   const [metaCategories, setMetaCategories] = useState([])
+  const [metaSubCategories, setMetaSubCategories] = useState([])
   const [brands, setBrands] = useState([])
   const [metaTags, setMetaTags] = useState([])
   const [saving, setSaving] = useState(false)
-  const [newBrand, setNewBrand] = useState(''); const [newCat, setNewCat] = useState(''); const [newTag, setNewTag] = useState('')
-  const [showNewBrand, setShowNewBrand] = useState(false); const [showNewCat, setShowNewCat] = useState(false); const [showNewTag, setShowNewTag] = useState(false)
+  const [newBrand, setNewBrand] = useState(''); const [newCat, setNewCat] = useState(''); const [newSubCat, setNewSubCat] = useState(''); const [newTag, setNewTag] = useState('')
+  const [showNewBrand, setShowNewBrand] = useState(false); const [showNewCat, setShowNewCat] = useState(false); const [showNewSubCat, setShowNewSubCat] = useState(false); const [showNewTag, setShowNewTag] = useState(false)
   const [note, setNote] = useState(product?.note || '')
   const DEFAULT_SECTIONS = [
     { title:'תיאור', body:'' },
@@ -617,8 +664,6 @@ function ProductModal({ product, onClose, onSave }) {
     if (s && typeof s === 'object' && !Array.isArray(s)) return Object.entries(s).map(([k, v]) => ({ k: String(k), v: String(v) }))
     return []
   })
-  const [nameHe, setNameHe] = useState(product?.nameHe || (product?.nameEn ? '' : product?.name || ''))
-  const [nameEn, setNameEn] = useState(product?.nameEn || '')
   const [skuLocked, setSkuLocked] = useState(!!product)
   const [form, setForm] = useState(product ? {
     ...product,
@@ -626,7 +671,7 @@ function ProductModal({ product, onClose, onSave }) {
     isKosher: product.isKosher !== false,
     salesCount: product.salesCount ?? 0,
     isFeatured: product.isFeatured === true,
-  } : { name:'', brand:'', sku:'', category:'', description:'', price:'', originalPrice:'', supplierPrice:'', stock:0, tags:[], isKosher:true, salesCount:0, isFeatured:false })
+  } : { name:'', brand:'', sku:'', category:'', subCategory:'', description:'', price:'', originalPrice:'', supplierPrice:'', stock:0, tags:[], isKosher:true, salesCount:0, isFeatured:false })
   const [photos, setPhotos] = useState((product?.images || []).map((url, i) => ({ url, isMain: i === 0, file: null })))
   // ── Variantes — SEUL système ──
   const [options, setOptions] = useState(() => Array.isArray(product?.options) ? product.options : [])
@@ -635,6 +680,7 @@ function ProductModal({ product, onClose, onSave }) {
 
   useEffect(() => {
     metaService.get('categories').then(cats => setMetaCategories(cats.length ? cats : ['סמארטפונים','מצלמות','אוזניות','שעונים']))
+    metaService.get('subcategories').then(setMetaSubCategories).catch(() => setMetaSubCategories([]))
     metaService.get('brands').then(setBrands)
     metaService.get('tags').then(setMetaTags)
   }, [])
@@ -651,19 +697,16 @@ function ProductModal({ product, onClose, onSave }) {
   const addAndSave = async (col, val, setter) => { const v = val.trim(); if (!v) return null; await metaService.add(col, v).catch(() => {}); setter(p => [...new Set([...p, v])].sort()); return v }
   const addBrand = async () => { const v = await addAndSave('brands', newBrand, setBrands); if (v) { setForm(p => ({ ...p, brand: v })); setNewBrand(''); setShowNewBrand(false) } }
   const addCat = async () => { const v = await addAndSave('categories', newCat, setMetaCategories); if (v) { setForm(p => ({ ...p, category: v })); setNewCat(''); setShowNewCat(false) } }
+  const addSubCat = async () => { const v = await addAndSave('subcategories', newSubCat, setMetaSubCategories); if (v) { setForm(p => ({ ...p, subCategory: v })); setNewSubCat(''); setShowNewSubCat(false) } }
   const addTag = async () => { const v = await addAndSave('tags', newTag.toLowerCase(), setMetaTags); if (v) { setForm(p => ({ ...p, tags: [...new Set([...(p.tags || []), v])] })); setNewTag(''); setShowNewTag(false) } }
   const toggleTag = t => setForm(p => ({ ...p, tags: p.tags?.includes(t) ? p.tags.filter(x => x !== t) : [...(p.tags || []), t] }))
 
   const submit = async (e) => {
     e.preventDefault(); setSaving(true)
     try {
-      const finalName = [nameHe.trim(), nameEn.trim()].filter(Boolean).join(' ')
       const fd = new FormData()
-      const TEXT = ['brand','sku','category','description','price','originalPrice','supplierPrice','stock']
+      const TEXT = ['name','brand','sku','category','subCategory','description','price','originalPrice','supplierPrice','stock']
       TEXT.forEach(k => { const v = form[k]; if (v !== undefined && v !== null) fd.append(k, v) })
-      fd.append('name', finalName)
-      fd.append('nameHe', nameHe.trim())
-      fd.append('nameEn', nameEn.trim())
       fd.append('tags', JSON.stringify(form.tags || []))
       const specsObj = {}; specs.filter(s => s.k.trim()).forEach(s => { specsObj[s.k.trim()] = s.v.trim() })
       fd.append('specs', JSON.stringify(specsObj))
@@ -717,37 +760,38 @@ function ProductModal({ product, onClose, onSave }) {
             </div>
           </div>
 
-          {/* Nom hébreu + anglais */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1.5">שם בעברית *</label>
-              <input value={nameHe} onChange={e => setNameHe(e.target.value)} required dir="rtl" className="input text-sm" placeholder="אייפון 15 פרו" />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1.5">שם באנגלית</label>
-              <input value={nameEn} onChange={e => setNameEn(e.target.value)} dir="ltr" className="input text-sm" placeholder="iPhone 15 Pro" />
-            </div>
+          {/* Nom du produit (champ unique) */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">שם המוצר *</label>
+            <input value={form.name || ''} onChange={set('name')} required dir="rtl" className="input text-sm" placeholder="שחור SAMSUNG GALAXY 128GB A25 סמארטפון תומך כשר סמסונג גלקסי" />
           </div>
-          {(nameHe || nameEn) && (
-            <p className="text-[11px] text-slate-400 -mt-2">שם סופי: <span className="font-semibold text-slate-600">{[nameHe.trim(), nameEn.trim()].filter(Boolean).join(' ')}</span></p>
-          )}
 
-          {/* Marque + Catégorie */}
+          {/* Marque */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">מותג *</label>
+            {!showNewBrand ? (
+              <div className="flex gap-2"><select value={form.brand} onChange={set('brand')} required className={`input text-sm flex-1 ${!form.brand?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`}><option value="">בחר...</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select><button type="button" onClick={() => setShowNewBrand(true)} className="btn btn-ghost text-xs px-3 py-2">+</button></div>
+            ) : (
+              <div className="flex gap-2"><input value={newBrand} onChange={e => setNewBrand(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="שם המותג..." autoFocus /><button type="button" onClick={addBrand} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewBrand(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
+            )}
+          </div>
+
+          {/* Catégorie + Sous-catégorie */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1.5">מותג *</label>
-              {!showNewBrand ? (
-                <div className="flex gap-2"><select value={form.brand} onChange={set('brand')} required className={`input text-sm flex-1 ${!form.brand?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`}><option value="">בחר...</option>{brands.map(b => <option key={b} value={b}>{b}</option>)}</select><button type="button" onClick={() => setShowNewBrand(true)} className="btn btn-ghost text-xs px-3 py-2">+</button></div>
-              ) : (
-                <div className="flex gap-2"><input value={newBrand} onChange={e => setNewBrand(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="שם המותג..." autoFocus /><button type="button" onClick={addBrand} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewBrand(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
-              )}
-            </div>
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1.5">קטגוריה *</label>
               {!showNewCat ? (
                 <div className="flex gap-2"><select value={form.category} onChange={set('category')} required className={`input text-sm flex-1 ${!form.category?.trim() ? 'ring-1 ring-red-200 border-red-200 bg-red-50/30' : ''}`}><option value="">בחר...</option>{metaCategories.map(c => <option key={c} value={c}>{c}</option>)}</select><button type="button" onClick={() => setShowNewCat(true)} className="btn btn-ghost text-xs px-2 py-2">+</button></div>
               ) : (
                 <div className="flex gap-2"><input value={newCat} onChange={e => setNewCat(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="קטגוריה חדשה..." autoFocus /><button type="button" onClick={addCat} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewCat(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">תת-קטגוריה <span className="font-normal text-slate-400">(כשר, תומך כשר...)</span></label>
+              {!showNewSubCat ? (
+                <div className="flex gap-2"><select value={form.subCategory || ''} onChange={set('subCategory')} className="input text-sm flex-1"><option value="">ללא</option>{metaSubCategories.map(s => <option key={s} value={s}>{s}</option>)}</select><button type="button" onClick={() => setShowNewSubCat(true)} className="btn btn-ghost text-xs px-2 py-2">+</button></div>
+              ) : (
+                <div className="flex gap-2"><input value={newSubCat} onChange={e => setNewSubCat(e.target.value)} dir="rtl" className="input text-sm flex-1" placeholder="תת-קטגוריה..." autoFocus /><button type="button" onClick={addSubCat} className="btn btn-primary px-3 py-2"><Check className="w-4 h-4" /></button><button type="button" onClick={() => setShowNewSubCat(false)} className="btn btn-ghost px-3 py-2"><X className="w-4 h-4" /></button></div>
               )}
             </div>
           </div>
@@ -795,7 +839,7 @@ function ProductModal({ product, onClose, onSave }) {
           <div className="space-y-2 pt-2">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">אפשרויות נוספות</p>
 
-            <Accordion title="מקטעים" subtitle="(תיאור מלא, אחריות, משלוח)" filled={details.some(s => s.body?.trim())} >
+            <Accordion title="מקטעים" subtitle="(תיאור מלא, אחריות, משלוח)" filled={details.some(s => s.body?.trim())} defaultOpen>
               <div className="space-y-3 mb-2">
                 {details.map((sec, i) => (
                   <div key={i} className="border border-slate-100 rounded-xl p-3 bg-slate-50/50">

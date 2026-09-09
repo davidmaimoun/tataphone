@@ -88,6 +88,7 @@ def import_excel():
     headers = [str(cell.value).strip().lower() if cell.value else '' for cell in ws[1]]
     imported = 0
     errors   = []
+    collected = []
 
     for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
         if not any(row):
@@ -105,9 +106,17 @@ def import_excel():
                 continue
 
             ProductModel.create_product(data)
+            collected.append(data)
             imported += 1
         except Exception as e:
             errors.append({'row': row_idx, 'error': str(e)})
+
+    # Enregistre les valeurs meta pour les listes du formulaire
+    try:
+        from app.db import get_db
+        _register_meta(get_db(), collected)
+    except Exception as e:
+        print(f'[IMPORT XLSX] meta registration failed: {e}')
 
     return jsonify({'imported': imported, 'errors': errors})
 
@@ -275,6 +284,34 @@ def meta_colors():
 # ── POST /api/products/import-json ────────────────────────────────────────────
 @products_bp.route('/import-json', methods=['POST'])
 @jwt_required()
+def _register_meta(db, products_data):
+    """Enregistre les catégories / sous-catégories / marques / tags rencontrés
+    dans les collections meta, pour qu'ils apparaissent dans les listes du formulaire.
+    Idempotent : upsert par 'name', pas de doublon."""
+    buckets = {
+        'meta_categories':    set(),
+        'meta_subcategories': set(),
+        'meta_brands':        set(),
+        'meta_tags':          set(),
+    }
+    for p in products_data:
+        c = (p.get('category') or '').strip()
+        if c: buckets['meta_categories'].add(c)
+        sc = (p.get('subCategory') or '').strip()
+        if sc: buckets['meta_subcategories'].add(sc)
+        b = (p.get('brand') or '').strip()
+        if b: buckets['meta_brands'].add(b)
+        for t in (p.get('tags') or []):
+            t = str(t).strip()
+            if t: buckets['meta_tags'].add(t)
+    for coll, values in buckets.items():
+        for v in values:
+            try:
+                db[coll].update_one({'name': v}, {'$setOnInsert': {'name': v}}, upsert=True)
+            except Exception:
+                pass
+
+
 def import_json():
     if not _is_admin():
         return jsonify({'error': 'Admin only'}), 403
@@ -298,6 +335,11 @@ def import_json():
             imported += 1
         except Exception as e:
             errors.append({'row': i+1, 'error': str(e)})
+    # Enregistre les valeurs meta (categories, marques, tags...) pour les listes du formulaire
+    try:
+        _register_meta(get_db(), products_data)
+    except Exception as e:
+        print(f'[IMPORT] meta registration failed: {e}')
     return jsonify({'imported': imported, 'updated': updated, 'errors': errors})
  
 
@@ -427,5 +469,3 @@ def export_products():
             as_attachment=True,
             download_name=f'tataphone_products_{stamp}.json'
         )
- 
-

@@ -9,7 +9,7 @@ import datetime
 
 meta_bp = Blueprint('meta', __name__)
 
-COLLECTIONS = ['categories', 'brands', 'colors', 'sizes', 'tags']
+COLLECTIONS = ['categories', 'subcategories', 'brands', 'colors', 'sizes', 'tags']
 
 
 def _col(name):
