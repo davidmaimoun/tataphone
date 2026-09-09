@@ -281,9 +281,7 @@ def meta_colors():
 
 
 
-# ── POST /api/products/import-json ────────────────────────────────────────────
-@products_bp.route('/import-json', methods=['POST'])
-@jwt_required()
+# ── Helper : enregistrement des valeurs meta lors de l'import ──────────────────
 def _register_meta(db, products_data):
     """Enregistre les catégories / sous-catégories / marques / tags rencontrés
     dans les collections meta, pour qu'ils apparaissent dans les listes du formulaire.
@@ -312,6 +310,9 @@ def _register_meta(db, products_data):
                 pass
 
 
+# ── POST /api/products/import-json ────────────────────────────────────────────
+@products_bp.route('/import-json', methods=['POST'])
+@jwt_required()
 def import_json():
     if not _is_admin():
         return jsonify({'error': 'Admin only'}), 403
