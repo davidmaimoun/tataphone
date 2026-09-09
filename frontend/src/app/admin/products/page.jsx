@@ -566,7 +566,7 @@ export default function AdminProducts() {
              : paged.map(p => (
               <tr key={p._id} className={`hover:bg-slate-50 ${selected.has(p._id) ? 'bg-primary-50/40' : ''}`}>
                 <td className="px-4 py-3"><input type="checkbox" checked={selected.has(p._id)} onChange={() => toggleSelect(p._id)} className="w-4 h-4 rounded border-slate-300 text-primary-600 cursor-pointer" /></td>
-                <td className="px-4 py-3"><div className="flex items-center gap-2">{p.images?.[0] && <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover" />}<div><div className="flex items-center gap-1.5"><p className="font-semibold text-slate-800 text-[14px] line-clamp-1">{p.name}</p><CompletenessBadge product={p} /></div>{p.isKosher && <span className="text-[10px] text-emerald-600 font-bold">✡ כשר</span>}</div></div></td>
+                <td className="px-4 py-3"><div className="flex items-center gap-2">{p.images?.[0] && <img src={p.images[0]} alt="" className="w-10 h-10 rounded-lg object-cover" />}<div><div className="flex items-center gap-1.5"><p className="font-semibold text-slate-800 text-[14px] line-clamp-1" style={{ unicodeBidi: 'plaintext' }}>{p.name}</p><CompletenessBadge product={p} /></div>{p.isKosher && <span className="text-[10px] text-emerald-600 font-bold">✡ כשר</span>}</div></div></td>
                 <td className="px-4 py-3 text-[13px] text-slate-500 hidden sm:table-cell">{p.brand}</td>
                 <td className="px-4 py-3"><span className="text-xs font-bold bg-primary-50 text-primary-600 px-2.5 py-1 rounded-full">{p.category}</span></td>
                 <td className="px-4 py-3 font-bold text-[14px]">₪{p.price?.toLocaleString()}</td>

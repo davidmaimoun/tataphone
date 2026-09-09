@@ -102,9 +102,9 @@ export default function ProductDetailClient({ product }) {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-2">
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_1fr] gap-6 lg:gap-10">
-          {/* LastMinute — colonne latérale (à gauche en RTL) — passe en bas sur mobile */}
-          <aside className="order-last lg:order-first">
+        <div className="grid grid-cols-1 lg:grid-cols-[270px_1fr_1fr] gap-6 lg:gap-10">
+          {/* LastMinute — colonne latérale à GAUCHE (order-last en RTL) — passe en bas sur mobile */}
+          <aside className="order-last">
             <div className="lg:sticky lg:top-4">
               <LastMinuteSection vertical />
             </div>
@@ -131,7 +131,7 @@ export default function ProductDetailClient({ product }) {
           {/* Info */}
           <div className="flex flex-col">
             <p className="text-[12px] font-bold text-primary-500 uppercase tracking-[0.14em] mb-2">{brand}</p>
-            <h1 className="font-black text-slate-900 leading-tight mb-4" style={{ fontSize: 30, unicodeBidi: 'plaintext', textAlign: 'right' }}>{name}</h1>
+            <h1 className="font-bold text-slate-900 leading-tight mb-4" style={{ fontSize: 30, unicodeBidi: 'plaintext', textAlign: 'right' }}>{name}</h1>
 
             <div className="flex items-center gap-2 mb-5 flex-wrap">
               <div className="flex items-center gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} className={`w-4 h-4 ${s <= Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}`} />)}</div>

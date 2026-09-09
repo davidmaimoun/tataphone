@@ -78,13 +78,13 @@ export default function LastMinuteSection({ compact = false, vertical = false })
   // ── Mode VERTICAL : colonne latérale, 1 produit par ligne, scrollable ──
   if (vertical) {
     return (
-      <div className="rounded-2xl p-3.5 relative overflow-hidden" style={{ background:'linear-gradient(135deg, #FBF2EC 0%, #FDF8F4 55%, #FCF4EF 100%)', border:'1px solid #F0DDD1', boxShadow:'0 2px 16px rgba(157,75,46,0.06)' }}>
+      <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background:'linear-gradient(135deg, #FBF2EC 0%, #FDF8F4 55%, #FCF4EF 100%)', border:'1px solid #F0DDD1', boxShadow:'0 2px 16px rgba(157,75,46,0.06)' }}>
         <div className="absolute pointer-events-none" style={{ width:200, height:200, top:-100, left:-50, borderRadius:'50%', background:'radial-gradient(circle, rgba(204,120,92,0.07) 0%, transparent 70%)' }} />
-        <div className="flex items-center gap-2 mb-3 relative">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{background:'linear-gradient(135deg,#F59E0B,#D97706)',boxShadow:'0 3px 10px rgba(245,158,11,0.3)'}}><Zap className="w-3.5 h-3.5 text-white fill-white" /></div>
+        <div className="flex items-center gap-2 mb-3.5 relative">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{background:'linear-gradient(135deg,#F59E0B,#D97706)',boxShadow:'0 3px 10px rgba(245,158,11,0.3)'}}><Zap className="w-4 h-4 text-white fill-white" /></div>
           <div>
-            <h2 className="font-black text-slate-900 text-[13px] leading-none">ברגע האחרון</h2>
-            <p className="text-[9px] text-slate-500 mt-0.5">אביזרים מומלצים ✨</p>
+            <h2 className="font-black text-slate-900 text-[14px] leading-none">ברגע האחרון</h2>
+            <p className="text-[10px] text-slate-500 mt-0.5">אביזרים מומלצים ✨</p>
           </div>
         </div>
         {loading ? (
