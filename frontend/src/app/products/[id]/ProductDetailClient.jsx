@@ -8,6 +8,7 @@ import useCartUiStore from '@/stores/cartUiStore'
 import useWishlistStore from '@/stores/wishlistStore'
 import useAuthStore from '@/stores/authStore'
 import { colorToCss, isLight } from '@/utils/colorUtils'
+import LastMinuteSection from '@/components/ui/LastMinuteSection'
 import toast from 'react-hot-toast'
 
 function ColorSwatch({ name, selected, onClick }) {
@@ -101,7 +102,14 @@ export default function ProductDetailClient({ product }) {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-2">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_1fr] gap-6 lg:gap-10">
+          {/* LastMinute — colonne latérale (à gauche en RTL) — passe en bas sur mobile */}
+          <aside className="order-last lg:order-first">
+            <div className="lg:sticky lg:top-4">
+              <LastMinuteSection vertical />
+            </div>
+          </aside>
+
           {/* Gallery */}
           <div>
             <div className="relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm" style={{ height: 420 }}>
@@ -130,17 +138,22 @@ export default function ProductDetailClient({ product }) {
               <span className="text-[14px] font-bold text-slate-700">{rating.toFixed(1)}</span>
               <span className="text-[14px] text-slate-400">({reviewCount} ביקורות)</span>
               {curStock > 0
-                ? <span className="text-[12px] font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-full flex items-center gap-1"><Check className="w-3 h-3" />במלאי</span>
-                : <span className="text-[12px] font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-full">אזל מהמלאי</span>}
-              {isKosher === true && <span className="text-[12px] font-bold px-2.5 py-1 rounded-full" style={{ background:'#D1FAE5', color:'#064E3B' }}>✡ כשר</span>}
+                ? <span className="text-[12px] font-black text-white px-3 py-1.5 rounded-lg flex items-center gap-1" style={{ background:'#059669', boxShadow:'0 2px 8px rgba(5,150,105,0.35)' }}><Check className="w-3.5 h-3.5" strokeWidth={3} />במלאי</span>
+                : <span className="text-[12px] font-black text-white px-3 py-1.5 rounded-lg flex items-center gap-1" style={{ background:'#DC2626', boxShadow:'0 2px 8px rgba(220,38,38,0.4)' }}>⚠ אזל מהמלאי</span>}
+              {isKosher === true && <span className="text-[12px] font-black px-3 py-1.5 rounded-lg" style={{ background:'#059669', color:'#fff', boxShadow:'0 2px 8px rgba(5,150,105,0.35)' }}>✡ כשר</span>}
             </div>
 
-            <div className="rounded-2xl p-5 mb-5 border border-primary-100" style={{ background:'linear-gradient(135deg,var(--primary-pale),#FBF7F4)' }}>
-              <div className="flex items-baseline gap-3">
-                <span className="price-num" style={{ fontSize: 38, lineHeight: 1 }}>₪{curPrice?.toLocaleString()}</span>
+            <div className="mb-5">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <span className="font-bold text-slate-900" style={{ fontSize: 34, lineHeight: 1 }}>₪{curPrice?.toLocaleString()}</span>
                 {curOrig > curPrice && <span className="text-xl text-slate-400 line-through">₪{curOrig?.toLocaleString()}</span>}
+                {discPct > 0 && <span className="text-[13px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-lg">−{discPct}%</span>}
               </div>
-              {discPct > 0 && <p className="text-[14px] font-bold text-red-600 mt-1.5">🎉 חסכת ₪{(curOrig - curPrice).toLocaleString()} — {discPct}% הנחה!</p>}
+              {/* Paiements échelonnés (style commerce israélien) */}
+              <p className="text-[14px] text-slate-500 mt-2">
+                או <span className="font-bold text-slate-700">₪{(curPrice / 6).toFixed(2)}</span> ב-6 תשלומים
+              </p>
+              {discPct > 0 && <p className="text-[13px] font-bold text-red-600 mt-1.5">🎉 חסכת ₪{(curOrig - curPrice).toLocaleString()}!</p>}
             </div>
 
             {description && <p className="text-[15px] text-slate-600 leading-7 mb-5">{description}</p>}
