@@ -98,7 +98,7 @@ export default function ProductDetailClient({ product }) {
         <Link href="/products" className="hover:text-primary-600 transition-colors">מוצרים</Link>
         {category && <><ChevronLeft className="w-3.5 h-3.5" /><Link href={`/products?category=${encodeURIComponent(category)}`} className="hover:text-primary-600 transition-colors">{category}</Link></>}
         <ChevronLeft className="w-3.5 h-3.5" />
-        <span className="text-slate-700 font-medium truncate max-w-xs">{name}</span>
+        <span className="text-slate-700 font-medium truncate max-w-xs" style={{ unicodeBidi: 'plaintext' }}>{name}</span>
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-2">
@@ -131,7 +131,7 @@ export default function ProductDetailClient({ product }) {
           {/* Info */}
           <div className="flex flex-col">
             <p className="text-[12px] font-bold text-primary-500 uppercase tracking-[0.14em] mb-2">{brand}</p>
-            <h1 className="font-black text-slate-900 leading-tight mb-4" style={{ fontSize: 30 }}>{name}</h1>
+            <h1 className="font-black text-slate-900 leading-tight mb-4" style={{ fontSize: 30, unicodeBidi: 'plaintext', textAlign: 'right' }}>{name}</h1>
 
             <div className="flex items-center gap-2 mb-5 flex-wrap">
               <div className="flex items-center gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} className={`w-4 h-4 ${s <= Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}`} />)}</div>
