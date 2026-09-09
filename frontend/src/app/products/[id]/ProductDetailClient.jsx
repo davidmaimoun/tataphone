@@ -105,7 +105,7 @@ export default function ProductDetailClient({ product }) {
         <div className="grid grid-cols-1 lg:grid-cols-[210px_1.1fr_1fr] gap-4 lg:gap-5">
           {/* LastMinute — colonne latérale à GAUCHE — passe en bas sur mobile */}
           <aside className="order-last">
-            <div className="lg:sticky lg:top-4">
+            <div className="w-[160px]">
               <LastMinuteSection vertical />
             </div>
           </aside>
