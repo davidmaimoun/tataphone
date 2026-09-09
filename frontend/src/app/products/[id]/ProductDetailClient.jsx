@@ -98,11 +98,11 @@ export default function ProductDetailClient({ product }) {
         <Link href="/products" className="hover:text-primary-600 transition-colors">מוצרים</Link>
         {category && <><ChevronLeft className="w-3.5 h-3.5" /><Link href={`/products?category=${encodeURIComponent(category)}`} className="hover:text-primary-600 transition-colors">{category}</Link></>}
         <ChevronLeft className="w-3.5 h-3.5" />
-        <span className="text-slate-700 font-medium truncate max-w-xs" style={{ unicodeBidi: 'plaintext' }}>{name}</span>
+        <span dir="ltr" className="text-slate-700 font-medium truncate max-w-xs" style={{ textAlign: 'right' }}>{name}</span>
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-2">
-        <div className="grid grid-cols-1 lg:grid-cols-[270px_1fr_1fr] gap-6 lg:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[175px_1fr_1fr] gap-6 lg:gap-10">
           {/* LastMinute — colonne latérale à GAUCHE (order-last en RTL) — passe en bas sur mobile */}
           <aside className="order-last">
             <div className="lg:sticky lg:top-4">
@@ -131,7 +131,7 @@ export default function ProductDetailClient({ product }) {
           {/* Info */}
           <div className="flex flex-col">
             <p className="text-[12px] font-bold text-primary-500 uppercase tracking-[0.14em] mb-2">{brand}</p>
-            <h1 className="font-bold text-slate-900 leading-tight mb-4" style={{ fontSize: 30, unicodeBidi: 'plaintext', textAlign: 'right' }}>{name}</h1>
+            <h1 dir="ltr" className="font-bold text-slate-900 leading-tight mb-4" style={{ fontSize: 30, textAlign: 'right' }}>{name}</h1>
 
             <div className="flex items-center gap-2 mb-5 flex-wrap">
               <div className="flex items-center gap-0.5">{[1,2,3,4,5].map(s => <Star key={s} className={`w-4 h-4 ${s <= Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'}`} />)}</div>
@@ -143,15 +143,16 @@ export default function ProductDetailClient({ product }) {
               {isKosher === true && <span className="text-[12px] font-black px-3 py-1.5 rounded-lg" style={{ background:'#059669', color:'#fff', boxShadow:'0 2px 8px rgba(5,150,105,0.35)' }}>✡ כשר</span>}
             </div>
 
-            <div className="mb-5">
+            <div className="mb-5 rounded-2xl p-4 sm:p-5" style={{ background:'linear-gradient(135deg, #FBF2EC 0%, #FDF9F6 60%, #FCF4EF 100%)', border:'1.5px solid #EAD5C8', boxShadow:'0 4px 20px rgba(157,75,46,0.08)' }}>
               <div className="flex items-baseline gap-3 flex-wrap">
-                <span className="font-bold text-slate-900" style={{ fontSize: 34, lineHeight: 1 }}>₪{curPrice?.toLocaleString()}</span>
+                <span className="font-bold" style={{ fontSize: 36, lineHeight: 1, background:'linear-gradient(135deg, #CC785C, #9D4B2E)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>₪{curPrice?.toLocaleString()}</span>
                 {curOrig > curPrice && <span className="text-xl text-slate-400 line-through">₪{curOrig?.toLocaleString()}</span>}
                 {discPct > 0 && <span className="text-[13px] font-bold text-white bg-red-500 px-2 py-0.5 rounded-lg">−{discPct}%</span>}
               </div>
-              {/* Paiements échelonnés (style commerce israélien) */}
-              <p className="text-[14px] text-slate-500 mt-2">
-                או <span className="font-bold text-slate-700">₪{(curPrice / 6).toFixed(2)}</span> ב-6 תשלומים
+              {/* Séparateur + paiements échelonnés (style commerce israélien) */}
+              <div className="h-px my-3" style={{ background:'linear-gradient(90deg, transparent, #E0C4B4, transparent)' }} />
+              <p className="text-[14px] text-slate-500">
+                או <span className="font-bold text-primary-700">₪{(curPrice / 6).toFixed(2)}</span> ב-6 תשלומים
               </p>
               {discPct > 0 && <p className="text-[13px] font-bold text-red-600 mt-1.5">🎉 חסכת ₪{(curOrig - curPrice).toLocaleString()}!</p>}
             </div>

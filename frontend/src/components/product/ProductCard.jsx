@@ -55,8 +55,8 @@ export default function ProductCard({ product, forceNew = false, rank = undefine
       {/* Info */}
       <div className="flex flex-col flex-1 px-2.5 pt-2.5 pb-2.5">
         <p className="text-[10px] font-bold text-primary-500 uppercase tracking-wide mb-0.5">{brand}</p>
-        <p className="text-[12px] sm:text-[13px] font-semibold text-slate-800 line-clamp-2 leading-snug mb-1"
-           style={{ minHeight: '2.4rem', unicodeBidi: 'plaintext', textAlign: 'right' }}>{name}</p>
+        <p dir="ltr" className="text-[12px] sm:text-[13px] font-semibold text-slate-800 line-clamp-2 leading-snug mb-1"
+           style={{ minHeight: '2.4rem', textAlign: 'right' }}>{name}</p>
 
         {isKosher === true && (
           <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full mb-1.5 w-fit"
