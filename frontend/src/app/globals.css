@@ -21,7 +21,7 @@
   --primary-glow:rgba(204,120,92,0.22);
   --primary-shadow:rgba(204,120,92,0.28); --primary-shadow-lg:rgba(204,120,92,0.40);
   --primary-border:#EAD3C7; --primary-border-hover:#DDA08A;
-  --bg:#FBF7F4;
+  --bg:#FDFBFA;
 }
 
 * { box-sizing: border-box; }
