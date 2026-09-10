@@ -21,7 +21,7 @@ const CATS = [
 
 export default function CategoryBar() {
   return (
-    <section className="py-3 bg-white border-b border-slate-100">
+    <section className="relative z-0 py-3 bg-white border-b border-slate-100">
       <div className="w-full" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="flex gap-4 sm:gap-5 overflow-x-auto no-scrollbar pb-1 justify-start lg:justify-center">
           {CATS.map(({ key, href, img }) => (

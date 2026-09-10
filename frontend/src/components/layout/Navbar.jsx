@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -22,6 +23,19 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [userMenu, setUserMenu] = useState(false)
   const userMenuRef = useRef(null)
+  const userBtnRef = useRef(null)
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
+  // Calcule la position du menu (sous le bouton) au moment de l'ouverture
+  const openUserMenu = () => {
+    if (!userMenu && userBtnRef.current) {
+      const r = userBtnRef.current.getBoundingClientRect()
+      setMenuPos({ top: r.bottom + 8, right: window.innerWidth - r.right })
+    }
+    setUserMenu(v => !v)
+  }
 
   useEffect(() => { useAuthStore.getState().init?.() }, [])
   useEffect(() => {
@@ -30,7 +44,11 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
   useEffect(() => {
-    const handler = (e) => { if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenu(false) }
+    const handler = (e) => {
+      if (userMenuRef.current && userMenuRef.current.contains(e.target)) return
+      if (userBtnRef.current && userBtnRef.current.contains(e.target)) return
+      setUserMenu(false)
+    }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
@@ -90,33 +108,37 @@ export default function Navbar() {
             <CartButtonMobile />
             {user ? (
               <div className="relative" ref={userMenuRef}>
-                <button onClick={() => setUserMenu(v => !v)} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 transition-colors">
+                <button ref={userBtnRef} onClick={openUserMenu} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 transition-colors">
                   <div className="w-6 h-6 rounded-full bg-primary-600 flex items-center justify-center text-white text-[11px] font-black">{user.name?.charAt(0) || '?'}</div>
                   <span className="text-[13px] font-semibold text-primary-700 hidden md:block max-w-[70px] truncate">{user.name?.split(' ')[0]}</span>
                   <ChevronDown className={`w-3.5 h-3.5 text-primary-500 transition-transform ${userMenu ? 'rotate-180' : ''}`} />
                 </button>
-                <AnimatePresence>
-                  {userMenu && (
-                    <motion.div initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:4 }} transition={{ duration:0.15 }}
-                      className="absolute left-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-[120] max-w-[calc(100vw-2rem)]">
-                      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                        <p className="font-bold text-[13px] text-slate-800 truncate">{user.name}</p>
-                        <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
-                      </div>
-                      <div className="p-1.5 space-y-0.5">
-                        {user.role === 'admin' && (
-                          <Link href="/admin" onClick={() => setUserMenu(false)}>
-                            <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors text-right"><User className="w-4 h-4" />פאנל ניהול</button>
+                {mounted && createPortal(
+                  <AnimatePresence>
+                    {userMenu && (
+                      <motion.div ref={userMenuRef} initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:4 }} transition={{ duration:0.15 }}
+                        className="w-48 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.18)] border border-slate-100 overflow-hidden max-w-[calc(100vw-2rem)]"
+                        style={{ position:'fixed', top: menuPos.top, right: menuPos.right, zIndex: 9999 }}>
+                        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                          <p className="font-bold text-[13px] text-slate-800 truncate">{user.name}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                        </div>
+                        <div className="p-1.5 space-y-0.5">
+                          {user.role === 'admin' && (
+                            <Link href="/admin" onClick={() => setUserMenu(false)}>
+                              <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors text-right"><User className="w-4 h-4" />פאנל ניהול</button>
+                            </Link>
+                          )}
+                          <Link href="/my-orders" onClick={() => setUserMenu(false)}>
+                            <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors text-right"><Package className="w-4 h-4" />ההזמנות שלי</button>
                           </Link>
-                        )}
-                        <Link href="/my-orders" onClick={() => setUserMenu(false)}>
-                          <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors text-right"><Package className="w-4 h-4" />ההזמנות שלי</button>
-                        </Link>
-                        <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold text-red-500 hover:bg-red-50 transition-colors text-right"><LogOut className="w-4 h-4" />התנתקות</button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                          <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold text-red-500 hover:bg-red-50 transition-colors text-right"><LogOut className="w-4 h-4" />התנתקות</button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>,
+                  document.body
+                )}
               </div>
             ) : (
               <Link href="/login">
