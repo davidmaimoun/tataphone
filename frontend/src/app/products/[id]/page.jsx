@@ -84,7 +84,7 @@ export default async function ProductPage({ params }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* La partie interactive (galerie, panier) = client component */}
       <ProductDetailClient product={product} />
-      <div id="product-tabs" className="w-full mx-auto px-4 sm:px-6 lg:px-10 pb-16" style={{ paddingLeft: 12, paddingRight: 12 }}>
+      <div id="product-tabs" className="w-full mx-auto pb-16" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <ProductDetailTabs details={product.details} specs={product.specs} />
         <SectionDivider />
         <ReviewSection productId={product._id} />

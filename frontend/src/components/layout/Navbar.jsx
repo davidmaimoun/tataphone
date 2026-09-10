@@ -47,7 +47,7 @@ export default function Navbar() {
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.06)]' : 'bg-white/80 backdrop-blur-md'}`}>
-      <div className="w-full mx-auto" style={{ paddingLeft: 12, paddingRight: 12 }}>
+      <div className="w-full mx-auto" style={{ paddingLeft: 48, paddingRight: 48 }}>
         <div className="flex items-center gap-2 sm:gap-3 h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 flex items-center">

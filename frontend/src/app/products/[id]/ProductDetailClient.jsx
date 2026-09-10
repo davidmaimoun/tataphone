@@ -92,7 +92,7 @@ export default function ProductDetailClient({ product }) {
 
   return (
     <div>
-      <div className="w-full mx-auto py-4 flex items-center gap-2 text-[14px] text-slate-400" style={{ paddingLeft: 12, paddingRight: 12 }}>
+      <div className="w-full mx-auto py-4 flex items-center gap-2 text-[14px] text-slate-400" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <Link href="/" className="hover:text-primary-600 transition-colors">ראשי</Link>
         <ChevronLeft className="w-3.5 h-3.5" />
         <Link href="/products" className="hover:text-primary-600 transition-colors">מוצרים</Link>
@@ -101,23 +101,10 @@ export default function ProductDetailClient({ product }) {
         <span dir="ltr" className="text-slate-700 font-medium truncate max-w-xs" style={{ textAlign: 'right' }}>{name}</span>
       </div>
 
-      <div className="w-full pb-2" style={{ paddingLeft: 12, paddingRight: 12 }}>
-        <div className="grid grid-cols-1 lg:grid-cols-[20fr_30fr_50fr] gap-5 lg:gap-6">
-          {/* LastMinute (20%) — visuellement à GAUCHE (order 3) — mobile : après le produit, avant les tabs */}
-          <aside className="lg:order-3">
-            <div className="lg:sticky lg:top-4">
-              {/* Bouton mobile : va directement aux tabs de description */}
-              <button onClick={() => { document.getElementById('product-tabs')?.scrollIntoView({ behavior: 'smooth' }) }}
-                className="lg:hidden w-full mb-3 py-2.5 rounded-xl text-[13px] font-bold text-white flex items-center justify-center gap-2"
-                style={{ background:'linear-gradient(135deg,var(--primary),var(--primary-deep))' }}>
-                לתיאור המלא של המוצר ↓
-              </button>
-              <LastMinuteSection vertical />
-            </div>
-          </aside>
-
-          {/* Gallery / photos (30%) — visuellement à DROITE (order 1) */}
-          <div className="lg:order-1">
+      <div className="w-full pb-2" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[30fr_50fr_20fr] gap-5 lg:gap-8">
+          {/* Gallery / photos (30%) — à DROITE en RTL */}
+          <div className="order-1">
             <div className="relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm" style={{ height: 420 }}>
               {images[mainImg]
                 ? <Image src={images[mainImg]} alt={name} fill sizes="(max-width:1024px) 100vw, 50vw" unoptimized className="object-cover" priority />
@@ -141,8 +128,8 @@ export default function ProductDetailClient({ product }) {
             )}
           </div>
 
-          {/* Info / description (50%) — visuellement au CENTRE (order 2) */}
-          <div className="flex flex-col lg:order-2">
+          {/* Info / description (50%) — au CENTRE */}
+          <div className="flex flex-col order-2">
             <p className="text-[12px] font-bold text-primary-500 uppercase tracking-[0.14em] mb-2">{brand}</p>
             <h1 dir="ltr" className="font-bold text-slate-900 leading-tight mb-4" style={{ fontSize: 30, textAlign: 'right' }}>{name}</h1>
 
@@ -252,6 +239,18 @@ export default function ProductDetailClient({ product }) {
             )}
 
           </div>
+
+          {/* LastMinute (20%) — à GAUCHE en RTL — mobile : après le produit, avant les tabs */}
+          <aside className="order-3">
+            <div className="lg:sticky lg:top-4">
+              <button onClick={() => { document.getElementById('product-tabs')?.scrollIntoView({ behavior: 'smooth' }) }}
+                className="lg:hidden w-full mb-3 py-2.5 rounded-xl text-[13px] font-bold text-white flex items-center justify-center gap-2"
+                style={{ background:'linear-gradient(135deg,var(--primary),var(--primary-deep))' }}>
+                לתיאור המלא של המוצר ↓
+              </button>
+              <LastMinuteSection vertical />
+            </div>
+          </aside>
         </div>
       </div>
     </div>
