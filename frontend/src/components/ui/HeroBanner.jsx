@@ -47,7 +47,7 @@ const SLIDES = [
 ]
 const N = SLIDES.length
 
-export default function HeroBanner() {
+export default function HeroBanner({ fillHeight = false }) {
   const [cur, setCur] = useState(0)
   useEffect(() => {
     const t = setInterval(() => setCur(c => (c + 1) % N), 6500)
@@ -58,10 +58,10 @@ export default function HeroBanner() {
   const s = SLIDES[cur]
 
   return (
-    <section className="hero-animated-bg relative overflow-hidden transition-all duration-700">
+    <section className={`hero-animated-bg relative overflow-hidden transition-all duration-700 ${fillHeight ? 'flex-1 flex items-center' : ''}`}>
       <style>{`
         .hero-animated-bg {
-          background: linear-gradient(90deg, #F1DBC9, #D0925B, #D6A06E, #F1E0D0, #D0925B);
+          background: linear-gradient(90deg, #F4E1D2, #DBA575, #E0B088, #F4E4D6, #DBA575);
           background-size: 300% 100%;
           animation: heroGradientDrift 7s ease-in-out infinite;
         }

@@ -32,8 +32,13 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <CategoryBar />
-      <HeroBanner />
+      {/* Category bar + Hero occupent ensemble toute la hauteur de l'écran (sous la navbar sticky) */}
+      <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 64px)' }}>
+        <CategoryBar />
+        <div className="flex-1 flex flex-col">
+          <HeroBanner fillHeight />
+        </div>
+      </div>
 
       {/* New arrivals */}
       <section className="py-14">
