@@ -46,7 +46,6 @@ export default function Navbar() {
   )
 
   return (
-    <>
     <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.06)]' : 'bg-white/80 backdrop-blur-md'}`}>
       <div className="w-full mx-auto" style={{ paddingLeft: 48, paddingRight: 48 }}>
         <div className="flex items-center gap-2 sm:gap-3 h-16">
@@ -162,26 +161,5 @@ export default function Navbar() {
         </AnimatePresence>
       </div>
     </header>
-
-    {/* Barre de catégories sous la navbar — centrée, scrollable sur mobile */}
-    <div className="hidden lg:block bg-white border-b border-slate-100 sticky top-16 z-40">
-      <div className="w-full flex items-center justify-center gap-1 py-2 overflow-x-auto" style={{ paddingLeft: 48, paddingRight: 48 }}>
-        {[
-          { label: 'כל המוצרים', href: '/products' },
-          { label: 'סמארטפונים', href: '/products?category=' + encodeURIComponent('סמארטפון') },
-          { label: 'כשר', href: '/products?subCategory=' + encodeURIComponent('כשר') },
-          { label: 'תומך כשר', href: '/products?subCategory=' + encodeURIComponent('תומך כשר') },
-          { label: 'רמקולים', href: '/products?category=' + encodeURIComponent('רמקולים') },
-          { label: 'אוזניות', href: '/products?category=' + encodeURIComponent('אוזניות') },
-          { label: 'מבצעים', href: '/products?sale=true' },
-        ].map(({ label, href }) => (
-          <Link key={label} href={href}
-            className="whitespace-nowrap px-4 py-1.5 rounded-lg text-[13px] font-semibold text-slate-600 hover:text-primary-600 hover:bg-primary-50 transition-colors">
-            {label}
-          </Link>
-        ))}
-      </div>
-    </div>
-  </>
   )
 }
