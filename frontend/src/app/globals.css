@@ -21,7 +21,7 @@
   --primary-glow:rgba(204,120,92,0.22);
   --primary-shadow:rgba(204,120,92,0.28); --primary-shadow-lg:rgba(204,120,92,0.40);
   --primary-border:#EAD3C7; --primary-border-hover:#DDA08A;
-  --bg:#FDFBFA;
+  --bg:#FEFDFC;
 }
 
 * { box-sizing: border-box; }
@@ -190,6 +190,7 @@ body {
     font-size: 112%;
   }
 }
+
 
 /* ════════════════════════════════════════════════════════════
    Agrandissement du contenu ADMIN (+12%, comme le public).
