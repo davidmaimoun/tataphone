@@ -47,7 +47,7 @@ export default function Navbar() {
 
   return (
     <header className={`sticky top-0 z-[100] transition-all duration-300 ${scrolled ? 'bg-white shadow-[0_2px_20px_rgba(0,0,0,0.06)]' : 'bg-white'}`}>
-      <div className="w-full mx-auto px-3 lg:px-12 overflow-x-hidden">
+      <div className="w-full mx-auto px-3 lg:px-12">
         <div className="flex items-center gap-2 sm:gap-3 h-16">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 flex items-center">
