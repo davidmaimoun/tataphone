@@ -32,8 +32,8 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <HeroBanner />
       <CategoryBar />
+      <HeroBanner />
 
       {/* New arrivals */}
       <section className="py-14">
