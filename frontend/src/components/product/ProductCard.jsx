@@ -42,8 +42,8 @@ export default function ProductCard({ product, forceNew = false, rank = undefine
         {/* Badges */}
         <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
           {showNew && (
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-full text-white"
-              style={{ background: 'linear-gradient(135deg,var(--primary),var(--primary-dark))', boxShadow: '0 2px 6px var(--primary-shadow)' }}>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
+              style={{ background: 'linear-gradient(135deg,#10B981,#059669)', boxShadow: '0 2px 6px rgba(16,185,129,0.35)' }}>
               ✦ חדש
             </span>
           )}
