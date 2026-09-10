@@ -1,7 +1,6 @@
 import { Sparkles, TrendingUp, Star, Award, Shield, Truck, RotateCcw, BadgeCheck, Phone, Mail, Clock, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import HeroBanner from '@/components/ui/HeroBanner'
-import CategoryBar from '@/components/ui/CategoryBar'
+import FullScreenTop from '@/components/ui/FullScreenTop'
 import SectionHeader from '@/components/ui/SectionHeader'
 import ProductCarousel from '@/components/ui/ProductCarousel'
 import ProductCard from '@/components/product/ProductCard'
@@ -32,13 +31,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Category bar + Hero occupent ensemble la hauteur de l'écran sous la navbar */}
-      <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
-        <CategoryBar />
-        <div className="flex-1 flex flex-col min-h-0">
-          <HeroBanner fillHeight />
-        </div>
-      </div>
+      <FullScreenTop />
 
       {/* New arrivals */}
       <section className="py-14">
