@@ -97,8 +97,8 @@ export default function Navbar() {
                 </button>
                 <AnimatePresence>
                   {userMenu && (
-                    <motion.div initial={{ opacity:0, y:8, scale:0.96 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:4, scale:0.97 }} transition={{ duration:0.15 }}
-                      className="absolute left-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden z-[110] max-w-[calc(100vw-2rem)]">
+                    <motion.div initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:4 }} transition={{ duration:0.15 }}
+                      className="absolute left-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-[120] max-w-[calc(100vw-2rem)]">
                       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
                         <p className="font-bold text-[13px] text-slate-800 truncate">{user.name}</p>
                         <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
