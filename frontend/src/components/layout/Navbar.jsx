@@ -24,15 +24,15 @@ export default function Navbar() {
   const [userMenu, setUserMenu] = useState(false)
   const userMenuRef = useRef(null)
   const userBtnRef = useRef(null)
-  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
-  // Calcule la position du menu (sous le bouton) au moment de l'ouverture
+  // Calcule la position du menu (sous le bouton, aligné à gauche du bouton)
   const openUserMenu = () => {
     if (!userMenu && userBtnRef.current) {
       const r = userBtnRef.current.getBoundingClientRect()
-      setMenuPos({ top: r.bottom + 8, right: window.innerWidth - r.right })
+      setMenuPos({ top: r.bottom + 8, left: r.left })
     }
     setUserMenu(v => !v)
   }
@@ -118,7 +118,7 @@ export default function Navbar() {
                     {userMenu && (
                       <motion.div ref={userMenuRef} initial={{ opacity:0, y:6 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:4 }} transition={{ duration:0.15 }}
                         className="w-48 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.18)] border border-slate-100 overflow-hidden max-w-[calc(100vw-2rem)]"
-                        style={{ position:'fixed', top: menuPos.top, right: menuPos.right, zIndex: 9999 }}>
+                        style={{ position:'fixed', top: menuPos.top, left: menuPos.left, zIndex: 9999 }}>
                         <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
                           <p className="font-bold text-[13px] text-slate-800 truncate">{user.name}</p>
                           <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
