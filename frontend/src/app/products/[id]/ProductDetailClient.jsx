@@ -92,7 +92,7 @@ export default function ProductDetailClient({ product }) {
 
   return (
     <div>
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-2 text-[14px] text-slate-400">
+      <div className="w-full mx-auto py-4 flex items-center gap-2 text-[14px] text-slate-400" style={{ paddingLeft: 12, paddingRight: 12 }}>
         <Link href="/" className="hover:text-primary-600 transition-colors">ראשי</Link>
         <ChevronLeft className="w-3.5 h-3.5" />
         <Link href="/products" className="hover:text-primary-600 transition-colors">מוצרים</Link>
@@ -101,17 +101,23 @@ export default function ProductDetailClient({ product }) {
         <span dir="ltr" className="text-slate-700 font-medium truncate max-w-xs" style={{ textAlign: 'right' }}>{name}</span>
       </div>
 
-      <div className="max-w-[1240px] mx-auto px-3 sm:px-4 lg:px-5 pb-2">
-        <div className="grid grid-cols-1 lg:grid-cols-[210px_1.1fr_1fr] gap-4 lg:gap-5">
-          {/* LastMinute — colonne latérale à GAUCHE — passe en bas sur mobile */}
-          <aside className="order-last">
-            <div className="w-[160px]">
+      <div className="w-full pb-2" style={{ paddingLeft: 12, paddingRight: 12 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[20fr_30fr_50fr] gap-5 lg:gap-6">
+          {/* LastMinute (20%) — visuellement à GAUCHE (order 3) — mobile : après le produit, avant les tabs */}
+          <aside className="lg:order-3">
+            <div className="lg:sticky lg:top-4">
+              {/* Bouton mobile : va directement aux tabs de description */}
+              <button onClick={() => { document.getElementById('product-tabs')?.scrollIntoView({ behavior: 'smooth' }) }}
+                className="lg:hidden w-full mb-3 py-2.5 rounded-xl text-[13px] font-bold text-white flex items-center justify-center gap-2"
+                style={{ background:'linear-gradient(135deg,var(--primary),var(--primary-deep))' }}>
+                לתיאור המלא של המוצר ↓
+              </button>
               <LastMinuteSection vertical />
             </div>
           </aside>
 
-          {/* Gallery */}
-          <div>
+          {/* Gallery / photos (30%) — visuellement à DROITE (order 1) */}
+          <div className="lg:order-1">
             <div className="relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm" style={{ height: 420 }}>
               {images[mainImg]
                 ? <Image src={images[mainImg]} alt={name} fill sizes="(max-width:1024px) 100vw, 50vw" unoptimized className="object-cover" priority />
@@ -135,8 +141,8 @@ export default function ProductDetailClient({ product }) {
             )}
           </div>
 
-          {/* Info */}
-          <div className="flex flex-col">
+          {/* Info / description (50%) — visuellement au CENTRE (order 2) */}
+          <div className="flex flex-col lg:order-2">
             <p className="text-[12px] font-bold text-primary-500 uppercase tracking-[0.14em] mb-2">{brand}</p>
             <h1 dir="ltr" className="font-bold text-slate-900 leading-tight mb-4" style={{ fontSize: 30, textAlign: 'right' }}>{name}</h1>
 
@@ -145,9 +151,9 @@ export default function ProductDetailClient({ product }) {
               <span className="text-[14px] font-bold text-slate-700">{rating.toFixed(1)}</span>
               <span className="text-[14px] text-slate-400">({reviewCount} ביקורות)</span>
               {curStock > 0
-                ? <span className="text-[12px] font-black text-white px-3 py-1.5 rounded-lg flex items-center gap-1" style={{ background:'#059669', boxShadow:'0 2px 8px rgba(5,150,105,0.35)' }}><Check className="w-3.5 h-3.5" strokeWidth={3} />במלאי</span>
-                : <span className="text-[12px] font-black text-white px-3 py-1.5 rounded-lg flex items-center gap-1" style={{ background:'#DC2626', boxShadow:'0 2px 8px rgba(220,38,38,0.4)' }}>⚠ אזל מהמלאי</span>}
-              {isKosher === true && <span className="text-[12px] font-black px-3 py-1.5 rounded-lg" style={{ background:'#059669', color:'#fff', boxShadow:'0 2px 8px rgba(5,150,105,0.35)' }}>✡ כשר</span>}
+                ? <span className="text-[12px] font-semibold text-white px-3 py-1.5 rounded-lg flex items-center gap-1" style={{ background:'#059669', boxShadow:'0 2px 8px rgba(5,150,105,0.35)' }}><Check className="w-3.5 h-3.5" strokeWidth={3} />במלאי</span>
+                : <span className="text-[12px] font-semibold text-white px-3 py-1.5 rounded-lg flex items-center gap-1" style={{ background:'#DC2626', boxShadow:'0 2px 8px rgba(220,38,38,0.4)' }}>⚠ אזל מהמלאי</span>}
+              {isKosher === true && <span className="text-[12px] font-semibold px-3 py-1.5 rounded-lg" style={{ background:'#059669', color:'#fff', boxShadow:'0 2px 8px rgba(5,150,105,0.35)' }}>✡ כשר</span>}
             </div>
 
             <div className="mb-5 rounded-2xl p-4 sm:p-5" style={{ background:'linear-gradient(135deg, #FBF2EC 0%, #FDF9F6 60%, #FCF4EF 100%)', border:'1.5px solid #EAD5C8', boxShadow:'0 4px 20px rgba(157,75,46,0.08)' }}>
