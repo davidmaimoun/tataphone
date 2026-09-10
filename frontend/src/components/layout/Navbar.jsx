@@ -46,7 +46,7 @@ export default function Navbar() {
   )
 
   return (
-    <header className={`sticky top-0 z-[100] transition-all duration-300 ${scrolled ? 'bg-white/70 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.06)]' : 'bg-white/80 backdrop-blur-md'}`}>
+    <header className={`sticky top-0 z-[100] transition-all duration-300 ${scrolled ? 'bg-white shadow-[0_2px_20px_rgba(0,0,0,0.06)]' : 'bg-white'}`}>
       <div className="w-full mx-auto px-3 lg:px-12 overflow-x-hidden">
         <div className="flex items-center gap-2 sm:gap-3 h-16">
           {/* Logo */}
@@ -98,7 +98,7 @@ export default function Navbar() {
                 <AnimatePresence>
                   {userMenu && (
                     <motion.div initial={{ opacity:0, y:8, scale:0.96 }} animate={{ opacity:1, y:0, scale:1 }} exit={{ opacity:0, y:4, scale:0.97 }} transition={{ duration:0.15 }}
-                      className="absolute left-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden z-50 max-w-[calc(100vw-2rem)]">
+                      className="absolute left-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-slate-100 overflow-hidden z-[110] max-w-[calc(100vw-2rem)]">
                       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
                         <p className="font-bold text-[13px] text-slate-800 truncate">{user.name}</p>
                         <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
