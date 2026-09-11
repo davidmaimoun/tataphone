@@ -1,7 +1,6 @@
 'use client'
-import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, ChevronLeft, ChevronRight, Zap } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Zap } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 const SLIDES = [
@@ -47,7 +46,7 @@ const SLIDES = [
 ]
 const N = SLIDES.length
 
-export default function HeroBanner({ fillHeight = false }) {
+export default function HeroBanner() {
   const [cur, setCur] = useState(0)
   useEffect(() => {
     const t = setInterval(() => setCur(c => (c + 1) % N), 6500)
@@ -58,7 +57,7 @@ export default function HeroBanner({ fillHeight = false }) {
   const s = SLIDES[cur]
 
   return (
-    <section className={`hero-animated-bg relative overflow-hidden transition-all duration-700 ${fillHeight ? 'flex-1 flex items-center' : ''}`}>
+    <section className="hero-animated-bg relative overflow-hidden transition-all duration-700">
       <style>{`
         .hero-animated-bg {
           background: linear-gradient(90deg, #F4E1D2, #DBA575, #E0B088, #F4E4D6, #DBA575);
@@ -83,34 +82,15 @@ export default function HeroBanner({ fillHeight = false }) {
           <div className="flex-1 text-right w-full lg:max-w-lg z-10">
             <AnimatePresence mode="wait">
               <motion.div key={`text-${cur}`} initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} transition={{ duration:0.38, ease:[0.22,1,0.36,1] }}>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-4 text-xs font-bold" style={{ background:`${s.accent}12`, color:s.accent, border:`1px solid ${s.accentLight}` }}>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5 text-xs font-semibold" style={{ background:`${s.accent}12`, color:s.accent, border:`1px solid ${s.accentLight}` }}>
                   <Zap className="w-3.5 h-3.5" />{s.tag}
                 </div>
-                <h1 className="font-black leading-[1.04] tracking-tight mb-4 text-slate-900 whitespace-pre-line" style={{ fontSize:'clamp(34px,5vw,62px)' }}>
+                <h1 className="font-black leading-[1.04] tracking-tight mb-5 text-slate-900 whitespace-pre-line" style={{ fontSize:'clamp(34px,5vw,62px)' }}>
                   {s.title}{' '}
                   <span style={{ WebkitTextFillColor:'transparent', WebkitBackgroundClip:'text', backgroundClip:'text', backgroundImage:`linear-gradient(135deg,${s.accent},${s.accent}88)` }}>{s.highlight}</span>
                   {s.end}
                 </h1>
-                <p className="text-base lg:text-lg text-slate-500 mb-6 leading-7 lg:min-h-[56px]">{s.sub}</p>
-                <div className="flex gap-3 flex-wrap">
-                  <Link href={s.ctaTo}>
-                    <button className="btn btn-primary text-[14px] lg:text-[15px] px-6 py-3 rounded-xl gap-2 text-white"
-                            style={{ background:'linear-gradient(135deg, var(--primary), var(--primary-dark))', boxShadow:'0 4px 16px var(--primary-shadow)' }}>
-                      {s.cta} <ArrowLeft className="w-4 h-4" />
-                    </button>
-                  </Link>
-                  <Link href={s.cta2To}>
-                    <button className="btn text-[14px] lg:text-[15px] px-6 py-3 rounded-xl gap-2 text-white" style={{ background:'var(--primary)' }}>{s.cta2}</button>
-                  </Link>
-                </div>
-                <div className="flex gap-6 mt-8">
-                  {[['500+','מוצרים'],['10K+','לקוחות'],['4.9★','דירוג']].map(([n,l]) => (
-                    <div key={l}>
-                      <div className="text-lg font-black" style={{ color:s.accent }}>{n}</div>
-                      <div className="text-xs text-slate-400 font-medium">{l}</div>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-base lg:text-lg text-slate-500 leading-7 lg:min-h-[56px] max-w-md">{s.sub}</p>
               </motion.div>
             </AnimatePresence>
           </div>

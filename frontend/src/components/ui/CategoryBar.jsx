@@ -22,7 +22,7 @@ const CATS = [
 export default function CategoryBar() {
   return (
     <section className="relative z-0 py-3 bg-white border-b border-slate-100">
-      <div className="w-full" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+      <div className="w-full relative" style={{ paddingLeft: '3%', paddingRight: '3%' }}>
         <div className="flex gap-4 sm:gap-5 overflow-x-auto no-scrollbar pb-1 justify-start lg:justify-center">
           {CATS.map(({ key, href, img }) => (
             <Link key={key} href={href} className="group flex flex-col items-center gap-2 flex-shrink-0" style={{ width: 'clamp(64px, 10vw, 84px)' }}>
@@ -33,6 +33,8 @@ export default function CategoryBar() {
             </Link>
           ))}
         </div>
+        {/* Fondu sur le bord gauche pour signaler le scroll horizontal (mobile) */}
+        <div className="lg:hidden pointer-events-none absolute top-0 bottom-0 left-0 w-10" style={{ background:'linear-gradient(90deg, #fff 20%, transparent)' }} />
       </div>
     </section>
   )
