@@ -159,28 +159,45 @@ export default function Navbar() {
         </div>
 
         {/* Mobile menu déroulant */}
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div initial={{ height:0, opacity:0 }} animate={{ height:'auto', opacity:1 }} exit={{ height:0, opacity:0 }} transition={{ duration:0.2 }} className="sm:hidden border-t border-slate-100 overflow-hidden">
-              <nav className="py-3 space-y-1">
-                <Link href="/products" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">כל המוצרים</button></Link>
-                <Link href="/products?isKosher=true" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-bold" style={{ color:'#064E3B', background:'#F0FDF4' }}>✡ מכשירים כשרים</button></Link>
-                <Link href="/products?sale=true" onClick={() => setMenuOpen(false)}><button className="w-full flex items-center justify-start gap-2 px-3 py-2.5 rounded-xl text-[15px] text-white" style={{ background:'linear-gradient(135deg,#EF4444,#DC2626)' }}><Flame className="w-4 h-4 fill-white" />מבצעים</button></Link>
-                <Link href="/wishlist" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"><Heart className="w-4 h-4" />מועדפים {wishlistIds.length > 0 && `(${wishlistIds.length})`}</button></Link>
-                <Link href="/contact" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">💬 צור קשר</button></Link>
-                {user ? (
-                  <>
-                    {user.role === 'admin' && <Link href="/admin" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">פאנל ניהול</button></Link>}
-                    <Link href="/my-orders" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">ההזמנות שלי</button></Link>
-                    <button onClick={handleLogout} className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-red-500 hover:bg-red-50 transition-colors">התנתקות</button>
-                  </>
-                ) : (
-                  <Link href="/login" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-bold text-primary-700 bg-primary-50">התחבר / הרשמה</button></Link>
-                )}
-              </nav>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {mounted && createPortal(
+          <AnimatePresence>
+            {menuOpen && (
+              <>
+                {/* Overlay sombre */}
+                <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }} transition={{ duration:0.2 }}
+                  onClick={() => setMenuOpen(false)}
+                  className="sm:hidden fixed inset-0 bg-black/40" style={{ zIndex: 9998 }} />
+                {/* Panneau qui glisse depuis la GAUCHE */}
+                <motion.div initial={{ x:'-100%' }} animate={{ x:0 }} exit={{ x:'-100%' }} transition={{ type:'tween', duration:0.28, ease:'easeOut' }}
+                  className="sm:hidden fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-white shadow-2xl overflow-y-auto"
+                  style={{ zIndex: 9999 }} dir="rtl">
+                  <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100">
+                    <span className="font-black text-primary-700 text-[15px]">תפריט</span>
+                    <button onClick={() => setMenuOpen(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100"><X className="w-5 h-5" /></button>
+                  </div>
+                  <nav className="p-3 space-y-1">
+                    <Link href="/products" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">כל המוצרים</button></Link>
+                    <Link href="/products?isKosher=true" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-bold" style={{ color:'#064E3B', background:'#F0FDF4' }}>✡ מכשירים כשרים</button></Link>
+                    <Link href="/products?sale=true" onClick={() => setMenuOpen(false)}><button className="w-full flex items-center justify-start gap-2 px-3 py-2.5 rounded-xl text-[15px] text-white" style={{ background:'linear-gradient(135deg,#EF4444,#DC2626)' }}><Flame className="w-4 h-4 fill-white" />מבצעים</button></Link>
+                    <Link href="/wishlist" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2"><Heart className="w-4 h-4" />מועדפים {wishlistIds.length > 0 && `(${wishlistIds.length})`}</button></Link>
+                    <Link href="/contact" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">💬 צור קשר</button></Link>
+                    <div className="my-2 border-t border-slate-100" />
+                    {user ? (
+                      <>
+                        {user.role === 'admin' && <Link href="/admin" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">פאנל ניהול</button></Link>}
+                        <Link href="/my-orders" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-slate-700 hover:bg-slate-50 transition-colors">ההזמנות שלי</button></Link>
+                        <button onClick={handleLogout} className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-semibold text-red-500 hover:bg-red-50 transition-colors">התנתקות</button>
+                      </>
+                    ) : (
+                      <Link href="/login" onClick={() => setMenuOpen(false)}><button className="w-full text-right px-3 py-2.5 rounded-xl text-[14px] font-bold text-primary-700 bg-primary-50">התחבר / הרשמה</button></Link>
+                    )}
+                  </nav>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
       </div>
     </header>
   )
