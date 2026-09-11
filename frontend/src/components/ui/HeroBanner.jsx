@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 
 const SLIDES = [
   {
-    tag: '✦ חדש בחנות', title: 'הטלפון', highlight: 'הכשר', end: '\nשחיפשת',
+    tag: 'חדש בחנות', title: 'הטלפון', highlight: 'הכשר', end: '\nשחיפשת',
     sub: 'מגוון מכשירים מאושרים במחירים הטובים ביותר',
     cta: 'גלה סמארטפונים', cta2: '🔥 מבצעים',
     ctaTo: '/products?category=סמארטפונים', cta2To: '/products?sale=true',
@@ -18,7 +18,7 @@ const SLIDES = [
     ],
   },
   {
-    tag: '📷 מצלמות מקצועיות', title: 'צלם', highlight: 'רגעים', end: '\nבלתי נשכחים',
+    tag: 'מצלמות מקצועיות', title: 'צלם', highlight: 'רגעים', end: '\nבלתי נשכחים',
     sub: 'Canon, Sony, GoPro — כל המצלמות המובילות',
     cta: 'גלה מצלמות', cta2: 'ראה מבצעים',
     ctaTo: '/products?category=מצלמות', cta2To: '/products?sale=true',
@@ -31,7 +31,7 @@ const SLIDES = [
     ],
   },
   {
-    tag: '🎧 אוזניות פרמיום', title: 'סאונד', highlight: 'שמשנה', end: '\nהכל',
+    tag: 'אוזניות פרמיום', title: 'סאונד', highlight: 'שמשנה', end: '\nהכל',
     sub: 'ביטול רעשים מתקדם. קול נקי. חוויה אחרת לגמרי.',
     cta: 'גלה אוזניות', cta2: 'TOP 10',
     ctaTo: '/products?category=אוזניות', cta2To: '/products?sort=-rating',
@@ -82,8 +82,8 @@ export default function HeroBanner() {
           <div className="flex-1 text-right w-full lg:max-w-lg z-10">
             <AnimatePresence mode="wait">
               <motion.div key={`text-${cur}`} initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} transition={{ duration:0.38, ease:[0.22,1,0.36,1] }}>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5 text-xs font-semibold" style={{ background:`${s.accent}12`, color:s.accent, border:`1px solid ${s.accentLight}` }}>
-                  <Zap className="w-3.5 h-3.5" />{s.tag}
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5 text-[12px] font-semibold" style={{ background:'rgba(255,255,255,0.6)', color:s.accent, border:`1px solid rgba(255,255,255,0.8)` }}>
+                  <Zap className="w-3.5 h-3.5" style={{ fill: s.accent }} />{s.tag}
                 </div>
                 <h1 className="font-black leading-[1.04] tracking-tight mb-5 text-slate-900 whitespace-pre-line" style={{ fontSize:'clamp(34px,5vw,62px)' }}>
                   {s.title}{' '}
