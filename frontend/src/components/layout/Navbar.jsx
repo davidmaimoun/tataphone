@@ -58,7 +58,7 @@ export default function Navbar() {
   // Icône panier sobre + petit badge (desktop et mobile)
   const CartButtonMobile = () => (
     <Link href="/cart" className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors flex-shrink-0">
-      <ShoppingCart className="w-6 h-6" style={{ color:'var(--primary)' }} />
+      <ShoppingCart className="w-[26px] h-[26px]" style={{ color:'var(--primary)' }} />
       {cartCount > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 text-white text-[9px] font-semibold rounded-full flex items-center justify-center" style={{ background:'var(--primary)' }}>{cartCount > 9 ? '9+' : cartCount}</span>}
     </Link>
   )
@@ -83,34 +83,34 @@ export default function Navbar() {
           </div>
 
           {/* Liens rapides desktop (produits + kosher + מבצעים + contact) */}
-          <nav className="hidden lg:flex items-center gap-2 flex-shrink-0 text-[14px] font-semibold text-slate-600">
-            <Link href="/products" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl font-bold transition-all hover:bg-slate-100 whitespace-nowrap text-slate-700">
-              <Package className="w-4 h-4" />כל המוצרים
+          <nav className="hidden lg:flex items-center gap-2 flex-shrink-0 text-[15px] font-semibold text-slate-600">
+            <Link href="/products" className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold transition-all hover:bg-slate-100 whitespace-nowrap text-slate-700">
+              <Package className="w-5 h-5" />כל המוצרים
             </Link>
-            <Link href="/products?isKosher=true" className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-bold transition-all hover:opacity-90 whitespace-nowrap" style={{ background:'#D1FAE5', color:'#064E3B', border:'1px solid #6EE7B7' }}>
-              <span style={{ fontSize:14 }}>✡</span>כשר
+            <Link href="/products?isKosher=true" className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold transition-all hover:opacity-90 whitespace-nowrap" style={{ background:'#D1FAE5', color:'#064E3B', border:'1px solid #6EE7B7' }}>
+              <span style={{ fontSize:16 }}>✡</span>כשר
             </Link>
-            <Link href="/products?sale=true" className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-white text-[14px] transition-all hover:scale-105 whitespace-nowrap"
+            <Link href="/products?sale=true" className="relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-[15px] transition-all hover:scale-105 whitespace-nowrap"
               style={{ background:'linear-gradient(135deg,#EF4444,#DC2626)', boxShadow:'0 2px 10px rgba(239,68,68,0.4)' }}>
-              <Flame className="w-3.5 h-3.5 fill-white" /><span>מבצעים</span>
+              <Flame className="w-4 h-4 fill-white" /><span>מבצעים</span>
             </Link>
-            <Link href="/contact" className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl font-bold transition-all hover:bg-slate-100 whitespace-nowrap text-slate-700">
-              <MessageCircle className="w-4 h-4" />צור קשר
+            <Link href="/contact" className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold transition-all hover:bg-slate-100 whitespace-nowrap text-slate-700">
+              <MessageCircle className="w-5 h-5" />צור קשר
             </Link>
           </nav>
 
           {/* Actions desktop : wishlist + cart + user */}
           <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
             <Link href="/wishlist" className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors">
-              <Heart className="w-6 h-6 text-slate-500" />
+              <Heart className="w-[26px] h-[26px] text-slate-500" />
               {wishlistIds.length > 0 && <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[9px] font-semibold rounded-full flex items-center justify-center">{wishlistIds.length > 9 ? '9+' : wishlistIds.length}</span>}
             </Link>
             <CartButtonMobile />
             {user ? (
               <div className="relative" ref={userMenuRef}>
                 <button ref={userBtnRef} onClick={openUserMenu} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-primary-50 hover:bg-primary-100 transition-colors">
-                  <div className="w-6 h-6 rounded-full bg-primary-600 flex items-center justify-center text-white text-[11px] font-black">{user.name?.charAt(0) || '?'}</div>
-                  <span className="text-[13px] font-semibold text-primary-700 hidden md:block max-w-[70px] truncate">{user.name?.split(' ')[0]}</span>
+                  <div className="w-7 h-7 rounded-full bg-primary-600 flex items-center justify-center text-white text-[12px] font-black">{user.name?.charAt(0) || '?'}</div>
+                  <span className="text-[14px] font-semibold text-primary-700 hidden md:block max-w-[80px] truncate">{user.name?.split(' ')[0]}</span>
                   <ChevronDown className={`w-3.5 h-3.5 text-primary-500 transition-transform ${userMenu ? 'rotate-180' : ''}`} />
                 </button>
                 {mounted && createPortal(
@@ -153,7 +153,7 @@ export default function Navbar() {
           <div className="flex sm:hidden items-center gap-1 flex-shrink-0">
             <CartButtonMobile />
             <button onClick={() => setMenuOpen(v => !v)} className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors">
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
